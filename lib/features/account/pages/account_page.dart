@@ -1,15 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:fitness_flutter/features/profile/pages/personal_details_page.dart';
 import 'package:fitness_flutter/shared/widgets/Header.dart';
 import 'package:fitness_flutter/app/theme/theme_provider.dart';
+import 'package:fitness_flutter/features/auth/pages/sign_in_page.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
 
+  String _userDisplayName(User? user) {
+    final displayName = user?.displayName?.trim();
+    if (displayName != null && displayName.isNotEmpty) return displayName;
+    final email = user?.email?.trim();
+    if (email != null && email.isNotEmpty) {
+      final atIndex = email.indexOf('@');
+      return atIndex > 0 ? email.substring(0, atIndex) : email;
+    }
+    return 'Guest';
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -66,14 +80,37 @@ class AccountPage extends StatelessWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'John Doe',
+                            _userDisplayName(user),
                             style: theme.textTheme.titleLarge,
                           ),
                           const SizedBox(height: 4),
                           Text(
-                            'john.doe@email.com',
+                            user?.email ?? 'Not signed in',
                             style: theme.textTheme.bodyMedium,
                           ),
+                          if (user != null) ...[
+                            const SizedBox(height: 8),
+                            Row(
+                              children: [
+                                Icon(
+                                  user.emailVerified
+                                      ? Icons.verified
+                                      : Icons.error_outline,
+                                  size: 16,
+                                  color: user.emailVerified
+                                      ? Colors.green
+                                      : theme.colorScheme.error,
+                                ),
+                                const SizedBox(width: 6),
+                                Text(
+                                  user.emailVerified
+                                      ? 'Email verified'
+                                      : 'Email not verified',
+                                  style: theme.textTheme.bodySmall,
+                                ),
+                              ],
+                            ),
+                          ],
                         ],
                       ),
                     ),
@@ -317,12 +354,34 @@ class AccountPage extends StatelessWidget {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.pop(context);
-                // TODO: Implement logout logic
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Logged out successfully')),
-                );
+
+                try {
+                  await FirebaseAuth.instance.signOut();
+                  if (!context.mounted) return;
+
+                  Navigator.of(context).pushAndRemoveUntil(
+                    MaterialPageRoute(builder: (_) => const SignInPage()),
+                    (route) => false,
+                  );
+                } on FirebaseAuthException catch (e) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        e.message ?? 'Logout failed. Please try again.',
+                      ),
+                    ),
+                  );
+                } catch (_) {
+                  if (!context.mounted) return;
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Logout failed. Please try again.'),
+                    ),
+                  );
+                }
               },
               style: TextButton.styleFrom(
                 foregroundColor: Theme.of(context).colorScheme.error,
