@@ -1,11 +1,98 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fitness_flutter/services/user_profile_service.dart';
 
 class PersonalDetailsPage extends StatelessWidget {
   const PersonalDetailsPage({super.key});
 
+  String _formatNum(num? value) {
+    if (value == null) return 'Not set';
+    final asDouble = value.toDouble();
+    if (asDouble % 1 == 0) return asDouble.toInt().toString();
+    return asDouble.toStringAsFixed(1);
+  }
+
+  Future<void> _editHeightWeight(BuildContext context, User user, UserProfile? profile) async {
+    final heightController = TextEditingController(
+      text: profile?.heightCm?.toString(),
+    );
+    final weightController = TextEditingController(
+      text: profile?.weightKg?.toString(),
+    );
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Update Measurements'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(
+                controller: heightController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Height (cm)',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: weightController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: 'Weight (kg)',
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) return;
+
+    num? parseNum(String text) {
+      final trimmed = text.trim();
+      if (trimmed.isEmpty) return null;
+      return num.tryParse(trimmed);
+    }
+
+    final height = parseNum(heightController.text);
+    final weight = parseNum(weightController.text);
+
+    try {
+      await UserProfileService().save(
+        uid: user.uid,
+        email: user.email,
+        heightCm: height,
+        weightKg: weight,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Saved successfully')),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Save failed. Please try again.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final user = FirebaseAuth.instance.currentUser;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -14,11 +101,17 @@ class PersonalDetailsPage extends StatelessWidget {
         centerTitle: true,
       ),
       body: SafeArea(
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
+        child: user == null
+            ? const Center(child: Text('Please sign in to view your details.'))
+            : StreamBuilder<UserProfile?>(
+                stream: UserProfileService().watch(user.uid),
+                builder: (context, snapshot) {
+                  final profile = snapshot.data;
+                  return SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
               // Profile Header Card
               Container(
                 width: double.infinity,
@@ -61,18 +154,20 @@ class PersonalDetailsPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
-                      'Pasindu Weerasinghe',
-                      style: TextStyle(
+                    Text(
+                      (user.displayName != null && user.displayName!.trim().isNotEmpty)
+                          ? user.displayName!.trim()
+                          : (user.email ?? 'User'),
+                      style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
                         color: Colors.white,
                       ),
                     ),
                     const SizedBox(height: 4),
-                    const Text(
-                      'Fitness Enthusiast',
-                      style: TextStyle(
+                    Text(
+                      user.email ?? '',
+                      style: const TextStyle(
                         fontSize: 15,
                         color: Colors.white70,
                       ),
@@ -97,14 +192,14 @@ class PersonalDetailsPage extends StatelessWidget {
                 theme,
                 icon: Icons.height,
                 label: 'Height',
-                value: '175 cm',
+                value: '${_formatNum(profile?.heightCm)} cm',
               ),
               const SizedBox(height: 10),
               _infoCard(
                 theme,
                 icon: Icons.monitor_weight_outlined,
                 label: 'Current Weight',
-                value: '72 kg',
+                value: '${_formatNum(profile?.weightKg)} kg',
               ),
               const SizedBox(height: 10),
               _infoCard(
@@ -243,17 +338,19 @@ class PersonalDetailsPage extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(vertical: 16),
                   ),
                   onPressed: () {
-                    // TODO: Navigate to edit profile page
+                    _editHeightWeight(context, user, profile);
                   },
                   icon: const Icon(Icons.edit),
-                  label: const Text('Edit Personal Details'),
+                  label: const Text('Edit Height & Weight'),
                 ),
               ),
 
               const SizedBox(height: 16),
-            ],
-          ),
-        ),
+                      ],
+                    ),
+                  );
+                },
+              ),
       ),
     );
   }

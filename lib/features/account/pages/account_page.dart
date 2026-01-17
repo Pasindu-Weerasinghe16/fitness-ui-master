@@ -5,6 +5,7 @@ import 'package:fitness_flutter/features/profile/pages/personal_details_page.dar
 import 'package:fitness_flutter/shared/widgets/Header.dart';
 import 'package:fitness_flutter/app/theme/theme_provider.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_in_page.dart';
+import 'package:fitness_flutter/services/user_profile_service.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -24,6 +25,7 @@ class AccountPage extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final user = FirebaseAuth.instance.currentUser;
+    final profileService = UserProfileService();
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -88,6 +90,33 @@ class AccountPage extends StatelessWidget {
                             user?.email ?? 'Not signed in',
                             style: theme.textTheme.bodyMedium,
                           ),
+                          if (user != null) ...[
+                            const SizedBox(height: 8),
+                            StreamBuilder<UserProfile?>(
+                              stream: profileService.watch(user.uid),
+                              builder: (context, snapshot) {
+                                final profile = snapshot.data;
+                                final height = profile?.heightCm;
+                                final weight = profile?.weightKg;
+
+                                final items = <String>[];
+                                if (height != null) items.add('Height: ${height.toString()} cm');
+                                if (weight != null) items.add('Weight: ${weight.toString()} kg');
+
+                                if (items.isEmpty) {
+                                  return Text(
+                                    'Add your height & weight',
+                                    style: theme.textTheme.bodySmall,
+                                  );
+                                }
+
+                                return Text(
+                                  items.join(' • '),
+                                  style: theme.textTheme.bodySmall,
+                                );
+                              },
+                            ),
+                          ],
                           if (user != null) ...[
                             const SizedBox(height: 8),
                             Row(

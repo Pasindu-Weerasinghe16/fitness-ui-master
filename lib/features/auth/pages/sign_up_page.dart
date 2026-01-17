@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_flutter/app/shell/tabs.dart';
 import 'package:fitness_flutter/shared/widgets/app_header.dart';
+import 'package:fitness_flutter/services/user_profile_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -51,8 +52,16 @@ class _SignUpPageState extends State<SignUpPage> {
       );
 
       final name = _nameController.text.trim();
-      if (name.isNotEmpty && credential.user != null) {
-        await credential.user!.updateDisplayName(name);
+      final user = credential.user;
+      if (user != null) {
+        if (name.isNotEmpty) {
+          await user.updateDisplayName(name);
+        }
+
+        await UserProfileService().save(
+          uid: user.uid,
+          email: user.email,
+        );
       }
 
       if (!mounted) return;
