@@ -1,13 +1,14 @@
-import 'package:fitness_flutter/components/next_step.dart';
-import 'package:fitness_flutter/models/exercise.dart';
-import 'package:fitness_flutter/pages/activity_timer.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fitness_flutter/features/workouts/models/exercise.dart';
+import 'package:fitness_flutter/features/workouts/pages/activity_timer.dart';
+import 'package:fitness_flutter/shared/widgets/next_step.dart';
 
 class ActivityDetail extends StatelessWidget {
   final String tag;
   final Exercise exercise;
 
-  ActivityDetail({required this.exercise, required this.tag});
+  const ActivityDetail({super.key, required this.exercise, required this.tag});
 
   @override
   Widget build(BuildContext context) {
@@ -196,3 +197,4 @@ class ActivityDetail extends StatelessWidget {
     );
   }
 }
+

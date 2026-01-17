@@ -1,7 +1,8 @@
-import 'package:fitness_flutter/components/image_card_with_basic_footer.dart';
-import 'package:fitness_flutter/data/Dishes.dart';
-import 'package:fitness_flutter/models/exercise.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fitness_flutter/features/nutrition/data/Dishes.dart';
+import 'package:fitness_flutter/features/workouts/models/exercise.dart';
+import 'package:fitness_flutter/shared/widgets/image_card_with_basic_footer.dart';
 
 class TabViewBase extends StatelessWidget {
   final String tabName;
@@ -69,3 +70,4 @@ class TabViewBase extends StatelessWidget {
     );
   }
 }
+

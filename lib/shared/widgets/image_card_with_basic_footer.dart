@@ -1,5 +1,6 @@
-import 'package:fitness_flutter/models/exercise.dart';
 import 'package:flutter/material.dart';
+
+import 'package:fitness_flutter/features/workouts/models/exercise.dart';
 
 class ImageCardWithBasicFooter extends StatelessWidget {
   final Exercise exercise;
@@ -54,3 +55,4 @@ class ImageCardWithBasicFooter extends StatelessWidget {
     );
   }
 }
+
