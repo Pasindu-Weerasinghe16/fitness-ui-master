@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_flutter/app/shell/tabs.dart';
 import 'package:fitness_flutter/shared/widgets/app_header.dart';
-import 'package:fitness_flutter/services/user_profile_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -57,11 +56,6 @@ class _SignUpPageState extends State<SignUpPage> {
         if (name.isNotEmpty) {
           await user.updateDisplayName(name);
         }
-
-        await UserProfileService().save(
-          uid: user.uid,
-          email: user.email,
-        );
       }
 
       if (!mounted) return;
@@ -72,7 +66,9 @@ class _SignUpPageState extends State<SignUpPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(e.message ?? 'Sign up failed. Please try again.'),
+          content: Text(
+            'Sign up failed (${e.code}): ${e.message ?? 'Please try again.'}',
+          ),
         ),
       );
     } catch (_) {
