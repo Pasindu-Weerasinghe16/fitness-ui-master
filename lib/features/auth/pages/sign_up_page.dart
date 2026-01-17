@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_flutter/app/shell/tabs.dart';
 import 'package:fitness_flutter/shared/widgets/app_header.dart';
 
@@ -30,27 +31,50 @@ class _SignUpPageState extends State<SignUpPage> {
   }
 
   Future<void> _handleSignUp() async {
-    if (_formKey.currentState!.validate()) {
-      if (!_agreeToTerms) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Please agree to Terms & Conditions'),
-          ),
-        );
-        return;
+    if (!_formKey.currentState!.validate()) return;
+
+    if (!_agreeToTerms) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please agree to Terms & Conditions'),
+        ),
+      );
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    try {
+      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
+      final name = _nameController.text.trim();
+      if (name.isNotEmpty && credential.user != null) {
+        await credential.user!.updateDisplayName(name);
       }
 
-      setState(() => _isLoading = true);
-
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-
       if (!mounted) return;
-
-      // Navigate to main app
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const Tabs()),
       );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Sign up failed. Please try again.'),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sign up failed. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 

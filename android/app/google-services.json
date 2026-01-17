@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "485024798996",
+    "project_id": "myfitjourney-d4c5c",
+    "storage_bucket": "myfitjourney-d4c5c.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:485024798996:android:09a15af0d65777016b0a01",
+        "android_client_info": {
+          "package_name": "com.example.fitness_flutter"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDUl6qx8c7mqwmmEhVjXlkKqscSCdYU-xE"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

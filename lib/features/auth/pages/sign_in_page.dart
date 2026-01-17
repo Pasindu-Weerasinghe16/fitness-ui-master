@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_up_page.dart';
 import 'package:fitness_flutter/app/shell/tabs.dart';
 import 'package:fitness_flutter/shared/widgets/app_header.dart';
@@ -25,18 +26,36 @@ class _SignInPageState extends State<SignInPage> {
   }
 
   Future<void> _handleSignIn() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() => _isLoading = true);
-      
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 1));
-      
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() => _isLoading = true);
+
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: _emailController.text.trim(),
+        password: _passwordController.text,
+      );
+
       if (!mounted) return;
-      
-      // Navigate to main app
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (_) => const Tabs()),
       );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(e.message ?? 'Sign in failed. Please try again.'),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Sign in failed. Please try again.'),
+        ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
     }
   }
 
