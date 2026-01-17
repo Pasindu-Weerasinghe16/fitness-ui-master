@@ -146,8 +146,7 @@ class Programs extends StatelessWidget {
                         subtitle: 'Badge',
                       ),
                     ],
-                  ) ),
-                  ],
+                  ),
                 ),
               ),
               const SizedBox(height: 20),
@@ -160,15 +159,40 @@ class Programs extends StatelessWidget {
               Section(
                 title: 'Custom builder',
                 horizontalList: <Widget>[
-                  ImageCardWithInternal(
-                    image: 'assets/images/image004.jpg',
-                    title: 'Build your plan',
-                    duration: 'Tailored',
+                  GestureDetector(
+                    onTap: () {
+                      // Navigate to custom workout builder
+                      _showCustomWorkoutBuilder(context);
+                    },
+                    child: ImageCardWithInternal(
+                      image: 'assets/images/image004.jpg',
+                      title: 'Build your plan',
+                      duration: 'Tailored',
+                    ),
                   ),
-                  ImageCardWithInternal(
-                    image: 'assets/images/image003.jpg',
-                    title: 'Power & strength',
-                    duration: '35 min',
+                  GestureDetector(
+                    onTap: () {
+                      // Navigate to power & strength preset
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ActivityDetail(
+                            exercise: const Exercise(
+                              image: 'assets/images/image003.jpg',
+                              title: 'Power & strength',
+                              time: '35 min',
+                              difficult: 'High',
+                            ),
+                            tag: 'custom_power',
+                          ),
+                        ),
+                      );
+                    },
+                    child: ImageCardWithInternal(
+                      image: 'assets/images/image003.jpg',
+                      title: 'Power & strength',
+                      duration: '35 min',
+                    ),
                   ),
                 ],
               ),
@@ -300,6 +324,179 @@ class Programs extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  void _showCustomWorkoutBuilder(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.9,
+        minChildSize: 0.5,
+        maxChildSize: 0.95,
+        builder: (_, controller) => Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+          ),
+          padding: const EdgeInsets.all(20),
+          child: ListView(
+            controller: controller,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text('Build Your Workout',
+                      style: Theme.of(context).textTheme.headlineSmall),
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              _buildWorkoutOption(
+                context,
+                'Full Body Workout',
+                '45 min',
+                'Medium',
+                Icons.fitness_center,
+              ),
+              _buildWorkoutOption(
+                context,
+                'Upper Body Focus',
+                '30 min',
+                'High',
+                Icons.accessibility_new,
+              ),
+              _buildWorkoutOption(
+                context,
+                'Cardio Blast',
+                '20 min',
+                'High',
+                Icons.directions_run,
+              ),
+              _buildWorkoutOption(
+                context,
+                'Core Strength',
+                '15 min',
+                'Medium',
+                Icons.self_improvement,
+              ),
+              _buildWorkoutOption(
+                context,
+                'Flexibility & Stretch',
+                '25 min',
+                'Low',
+                Icons.spa,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildWorkoutOption(BuildContext context, String title, String time,
+      String difficulty, IconData icon) {
+    final theme = Theme.of(context);
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      child: InkWell(
+        onTap: () {
+          Navigator.pop(context);
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ActivityDetail(
+                exercise: Exercise(
+                  image: 'assets/images/image003.jpg',
+                  title: title,
+                  time: time,
+                  difficult: difficulty,
+                ),
+                tag: 'custom_${title.toLowerCase().replaceAll(' ', '_')}',
+              ),
+            ),
+          );
+        },
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: theme.colorScheme.primary.withOpacity(0.2),
+            ),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: theme.colorScheme.primary.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, color: theme.colorScheme.primary, size: 28),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: theme.textTheme.titleMedium),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(Icons.access_time,
+                            size: 14, color: theme.textTheme.bodySmall?.color),
+                        const SizedBox(width: 4),
+                        Text(time, style: theme.textTheme.bodySmall),
+                        const SizedBox(width: 12),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 8, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: _getDifficultyColor(difficulty)
+                                .withOpacity(0.2),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            difficulty,
+                            style: TextStyle(
+                              fontSize: 12,
+                              color: _getDifficultyColor(difficulty),
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+              Icon(Icons.arrow_forward_ios,
+                  size: 16, color: theme.textTheme.bodySmall?.color),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Color _getDifficultyColor(String difficulty) {
+    switch (difficulty.toLowerCase()) {
+      case 'low':
+        return const Color(0xFF10B981);
+      case 'medium':
+        return const Color(0xFFF59E0B);
+      case 'high':
+        return const Color(0xFFEF4444);
+      default:
+        return const Color(0xFF6B7280);
+    }
   }
 
   Widget _goalCard(BuildContext context,

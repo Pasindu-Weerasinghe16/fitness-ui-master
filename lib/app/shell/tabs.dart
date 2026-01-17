@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:fitness_flutter/features/insights/tabs/Results.dart';
 import 'package:fitness_flutter/features/nutrition/tabs/Diet.dart';
 import 'package:fitness_flutter/features/workouts/tabs/Programs.dart';
+import 'package:fitness_flutter/features/account/pages/account_page.dart';
 
 class Tabs extends StatelessWidget {
   const Tabs({super.key});
@@ -12,7 +13,7 @@ class Tabs extends StatelessWidget {
     final theme = Theme.of(context);
 
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: Scaffold(
         backgroundColor: theme.scaffoldBackgroundColor,
         body: TabBarView(
@@ -20,6 +21,7 @@ class Tabs extends StatelessWidget {
             Programs(),
             Diet(),
             Results(),
+            AccountPage(),
           ],
         ),
         bottomNavigationBar: Container(
@@ -63,6 +65,11 @@ class Tabs extends StatelessWidget {
                           iconMargin: EdgeInsets.only(bottom: 2),
                           text: 'Insights',
                         ),
+                        Tab(
+                          icon: Icon(Icons.person_outline, size: 22),
+                          iconMargin: EdgeInsets.only(bottom: 2),
+                          text: 'Account',
+                        ),
                       ],
                       labelPadding: const EdgeInsets.symmetric(vertical: 4),
                       labelColor: Colors.white,
@@ -80,23 +87,6 @@ class Tabs extends StatelessWidget {
                         borderRadius: BorderRadius.circular(12),
                       ),
                       dividerColor: Colors.transparent,
-                    ),
-                  ),
-                  const SizedBox(height: 10),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton.icon(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: theme.colorScheme.primary,
-                        foregroundColor: Colors.white,
-                        elevation: 0,
-                        shadowColor: Colors.transparent,
-                      ),
-                      onPressed: () {
-                        // TODO: hook into account/profile screen
-                      },
-                      icon: const Icon(Icons.person_outline, size: 20),
-                      label: const Text('Account details'),
                     ),
                   ),
                 ],
