@@ -9,6 +9,7 @@ class Diet extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.only(top: 20.0),
       child: SafeArea(
@@ -50,8 +51,8 @@ class Diet extends StatelessWidget {
                   Container(height: 30.0, child: const Tab(text: 'Dinner')),
                   Container(height: 30.0, child: const Tab(text: 'Snacks')),
                 ],
-                labelColor: theme.colorScheme.primary,
-                unselectedLabelColor: Colors.white54,
+                labelColor: isDark ? theme.colorScheme.primary : Colors.black,
+                unselectedLabelColor: isDark ? Colors.white54 : Colors.black54,
                 indicatorWeight: 4.0,
                 indicatorSize: TabBarIndicatorSize.label,
                 indicatorColor: theme.colorScheme.primary,

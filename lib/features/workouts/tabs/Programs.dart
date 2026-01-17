@@ -1,5 +1,7 @@
 import 'package:fitness_flutter/features/workouts/models/exercise.dart';
 import 'package:fitness_flutter/features/workouts/pages/activity_detail.dart';
+import 'package:fitness_flutter/features/articles/models/article.dart';
+import 'package:fitness_flutter/features/articles/pages/article_detail_page.dart';
 import 'package:fitness_flutter/features/profile/pages/personal_details_page.dart';
 import 'package:fitness_flutter/shared/widgets/circle_bedge.dart';
 import 'package:fitness_flutter/shared/widgets/Header.dart';
@@ -9,7 +11,6 @@ import 'package:fitness_flutter/shared/widgets/image_card_with_basic_footer.dart
 import 'package:fitness_flutter/shared/widgets/image_card_with_internal.dart';
 import 'package:fitness_flutter/shared/widgets/main_card_programs.dart';
 import 'package:fitness_flutter/shared/widgets/user_photo.dart';
-import 'package:fitness_flutter/shared/widgets/user_tip.dart';
 
 import 'package:flutter/material.dart';
 
@@ -73,6 +74,50 @@ class Programs extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
 
+    const articles = <Article>[
+      Article(
+        title: 'Train smarter: 3 quick tips',
+        subtitle: 'Simple changes that improve results and reduce injury risk.',
+        image: 'assets/images/image011.jpg',
+        content:
+            'Be consistent.\n'
+            'Pick a realistic weekly schedule you can repeat for 4–6 weeks.\n\n'
+            'Master form first.\n'
+            'Slow, controlled reps build strength safely and faster long-term.\n\n'
+            'Progress gradually.\n'
+            'Add a little weight, time, or intensity each week and track it.\n\n'
+            '- Bonus: recovery is training (sleep + hydration + mobility).',
+      ),
+      Article(
+        title: 'Warm-up in 5 minutes',
+        subtitle: 'A short routine to prepare joints and raise heart rate.',
+        image: 'assets/images/image004.jpg',
+        content:
+            'Try this fast warm-up (5 minutes):\n\n'
+            '- 60s brisk march / light jog\n'
+            '- 10 bodyweight squats\n'
+            '- 10 hip hinges\n'
+            '- 10 arm circles each direction\n'
+            '- 30s plank\n\n'
+            'Finish with 2 easy sets of your first exercise at low intensity.',
+      ),
+      Article(
+        title: 'Build a weekly routine',
+        subtitle: 'A beginner-friendly plan you can stick to.',
+        image: 'assets/images/image003.jpg',
+        content:
+            'A simple weekly template:\n\n'
+            '- Mon: Full body strength\n'
+            '- Tue: Walk + mobility\n'
+            '- Wed: Upper body\n'
+            '- Thu: Light cardio\n'
+            '- Fri: Lower body\n'
+            '- Sat: Optional fun activity\n'
+            '- Sun: Rest\n\n'
+            'Start with 20–40 minute sessions, then increase gradually.',
+      ),
+    ];
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       body: SafeArea(
@@ -81,7 +126,7 @@ class Programs extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
-              Header('Workouts', rightSide: UserPhoto()),
+              const Header('Workouts'),
               InkWell(
                 onTap: () {
                   Navigator.push(
@@ -281,22 +326,33 @@ class Programs extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('Coach tips', style: theme.textTheme.titleMedium),
+                    Text('Articles', style: theme.textTheme.titleMedium),
                     const SizedBox(height: 10),
-                    Section(
-                      title: 'Daily tips',
-                      horizontalList: <Widget>[
-                        UserTip(image: 'assets/images/image010.jpg', name: 'Coach A'),
-                        UserTip(image: 'assets/images/image010.jpg', name: 'Coach B'),
-                        UserTip(image: 'assets/images/image010.jpg', name: 'Coach C'),
-                      ],
-                    ),
-                    Section(
-                      horizontalList: <Widget>[
-                        DailyTip(),
-                        DailyTip(),
-                        DailyTip(),
-                      ],
+                    SingleChildScrollView(
+                      padding: const EdgeInsets.only(top: 10.0),
+                      scrollDirection: Axis.horizontal,
+                      child: Row(
+                        children: articles
+                            .map(
+                              (article) => DailyTip(
+                                title: article.title,
+                                subtitle: article.subtitle,
+                                image: article.image,
+                                content: article.content,
+                                onTap: () {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ArticleDetailPage(
+                                        article: article,
+                                      ),
+                                    ),
+                                  );
+                                },
+                              ),
+                            )
+                            .toList(),
+                      ),
                     ),
                   ],
                 ),

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:fitness_flutter/app/shell/tabs.dart';
 import 'package:fitness_flutter/app/theme/app_theme.dart';
 import 'package:fitness_flutter/app/theme/theme_provider.dart';
+import 'package:fitness_flutter/features/auth/pages/sign_in_page.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -17,9 +18,7 @@ class MyApp extends StatelessWidget {
           theme: AppTheme.lightTheme,
           darkTheme: AppTheme.darkTheme,
           themeMode: themeProvider.themeMode,
-          home: const Scaffold(
-            body: Tabs(),
-          ),
+          home: const SignInPage(),
         );
       },
     );

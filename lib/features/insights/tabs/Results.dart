@@ -13,56 +13,58 @@ class Results extends StatelessWidget {
     final theme = Theme.of(context);
     var width = MediaQuery.of(context).size.width;
 
-    return SingleChildScrollView(
-      child: Container(
-        padding: const EdgeInsets.only(top: 20.0),
-        child: SafeArea(
-          child: Column(
-            children: <Widget>[
-              Header('Results'),
-              const SizedBox(height: 12),
-              Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16.0),
-                padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 18.0),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16.0),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
+    return Scaffold(
+      backgroundColor: theme.scaffoldBackgroundColor,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Container(
+            padding: const EdgeInsets.only(top: 20.0),
+            child: Column(
+              children: <Widget>[
+                Header('Results'),
+                const SizedBox(height: 12),
+                Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16.0),
+                  padding: const EdgeInsets.fromLTRB(20.0, 20.0, 20.0, 18.0),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(16.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: <Widget>[
+                          Text(
+                            'Insights overview',
+                            style: theme.textTheme.titleMedium,
+                          ),
+                          Icon(Icons.camera_alt, color: theme.colorScheme.primary),
+                        ],
+                      ),
+                      const SizedBox(height: 12),
+                      Wrap(
+                        spacing: 10,
+                        runSpacing: 10,
+                        children: [
+                          _chip(theme, Icons.local_fire_department, 'Calories', '480 / 600'),
+                          _chip(theme, Icons.fitness_center, 'Workouts', '4 this week'),
+                          _chip(theme, Icons.monitor_weight, 'Body', '56 kg · trending ↓'),
+                          _chip(theme, Icons.watch_later_outlined, 'Sleep', '7h 45m'),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: <Widget>[
-                        Text(
-                          'Insights overview',
-                          style: theme.textTheme.titleMedium,
-                        ),
-                        Icon(Icons.camera_alt, color: theme.colorScheme.primary),
-                      ],
-                    ),
-                    const SizedBox(height: 12),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      children: [
-                        _chip(theme, Icons.local_fire_department, 'Calories', '480 / 600'),
-                        _chip(theme, Icons.fitness_center, 'Workouts', '4 this week'),
-                        _chip(theme, Icons.monitor_weight, 'Body', '56 kg · trending ↓'),
-                        _chip(theme, Icons.watch_later_outlined, 'Sleep', '7h 45m'),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-              Container(
+                Container(
                 padding: const EdgeInsets.symmetric(
                   vertical: 25.0,
                   horizontal: 20.0,
@@ -280,6 +282,7 @@ class Results extends StatelessWidget {
             ],
           ),
         ),
+      ),
       ),
     );
   }
