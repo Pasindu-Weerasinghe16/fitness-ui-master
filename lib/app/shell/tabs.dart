@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 
 import 'package:fitness_flutter/features/insights/tabs/Results.dart';
 import 'package:fitness_flutter/features/nutrition/tabs/Diet.dart';
-import 'package:fitness_flutter/features/workouts/tabs/Programs.dart';
+import 'package:fitness_flutter/features/workouts/tabs/Programs_new.dart';
 import 'package:fitness_flutter/features/account/pages/account_page.dart';
 
 class Tabs extends StatelessWidget {

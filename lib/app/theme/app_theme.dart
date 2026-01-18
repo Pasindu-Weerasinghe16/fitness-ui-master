@@ -1,25 +1,25 @@
 import 'package:flutter/material.dart';
 
 class AppTheme {
-  // Light Theme Colors
-  static const _lightPrimary = Color(0xFF007AFF);
-  static const _lightSecondary = Color(0xFF5AC8FA);
-  static const _lightAccent = Color(0xFFFF9500);
-  static const _lightBackground = Color(0xFFF2F2F7);
+  // Light Theme Colors - iOS Fitness Style
+  static const _lightPrimary = Color(0xFFFF8C42);
+  static const _lightSecondary = Color(0xFF8B5CF6);
+  static const _lightAccent = Color(0xFFFFB84D);
+  static const _lightBackground = Color(0xFFFAFAFA);
   static const _lightCardColor = Color(0xFFFFFFFF);
-  static const _lightTextPrimary = Color(0xFF1C1C1E);
-  static const _lightTextSecondary = Color(0xFF3C3C43);
-  static const _lightTextTertiary = Color(0xFF8E8E93);
+  static const _lightTextPrimary = Color(0xFF1A1A1A);
+  static const _lightTextSecondary = Color(0xFF4A4A4A);
+  static const _lightTextTertiary = Color(0xFF9E9E9E);
 
-  // Dark Theme Colors
-  static const _darkPrimary = Color(0xFF0A84FF);
-  static const _darkSecondary = Color(0xFF64D2FF);
-  static const _darkAccent = Color(0xFFFF9F0A);
-  static const _darkBackground = Color(0xFF000000);
-  static const _darkCardColor = Color(0xFF1C1C1E);
+  // Dark Theme Colors - iOS Fitness Style
+  static const _darkPrimary = Color(0xFFFF8C42);
+  static const _darkSecondary = Color(0xFF8B5CF6);
+  static const _darkAccent = Color(0xFFFFB84D);
+  static const _darkBackground = Color(0xFF121212);
+  static const _darkCardColor = Color(0xFF1E1E1E);
   static const _darkTextPrimary = Color(0xFFFFFFFF);
-  static const _darkTextSecondary = Color(0xFFAEAEB2);
-  static const _darkTextTertiary = Color(0xFF636366);
+  static const _darkTextSecondary = Color(0xFFB0B0B0);
+  static const _darkTextTertiary = Color(0xFF707070);
 
   static ThemeData get lightTheme {
     return ThemeData(
@@ -98,9 +98,9 @@ class AppTheme {
         color: _lightCardColor,
         elevation: 0,
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(16),
         ),
-        shadowColor: Colors.black.withOpacity(0.05),
+        shadowColor: Colors.black.withOpacity(0.08),
       ),
       cardColor: _lightCardColor,
       dividerColor: const Color(0xFFE5E5EA),
