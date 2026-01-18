@@ -3,8 +3,10 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_flutter/features/workouts/models/exercise.dart';
 import 'package:fitness_flutter/features/workouts/pages/activity_detail.dart';
 import 'package:fitness_flutter/features/workouts/pages/workout_detail_page.dart';
+import 'package:fitness_flutter/features/workouts/pages/workout_calendar_page.dart';
 import 'package:fitness_flutter/shared/widgets/circular_progress_card.dart';
 import 'package:fitness_flutter/shared/widgets/stat_card.dart';
+import 'package:fitness_flutter/services/workout_tracking_service.dart';
 
 class Programs extends StatefulWidget {
   const Programs({super.key});
@@ -15,6 +17,36 @@ class Programs extends StatefulWidget {
 
 class _ProgramsState extends State<Programs> {
   String _selectedDifficulty = 'All';
+  final _trackingService = WorkoutTrackingService();
+  
+  // Stats
+  int _currentStreak = 0;
+  int _bestStreak = 0;
+  int _weeklyWorkouts = 0;
+  int _activeMinutes = 0;
+  int _todayCalories = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadStats();
+  }
+
+  Future<void> _loadStats() async {
+    final currentStreak = await _trackingService.getCurrentStreak();
+    final bestStreak = await _trackingService.getBestStreak();
+    final weeklyWorkouts = await _trackingService.getWeeklyWorkoutCount();
+    final activeMinutes = await _trackingService.getTodayActiveMinutes();
+    final todayCalories = await _trackingService.getTodayCalories();
+    
+    setState(() {
+      _currentStreak = currentStreak;
+      _bestStreak = bestStreak;
+      _weeklyWorkouts = weeklyWorkouts;
+      _activeMinutes = activeMinutes;
+      _todayCalories = todayCalories;
+    });
+  }
 
   final List<Map<String, String>> _workouts = [
     // Beginner Workouts
@@ -194,44 +226,94 @@ class _ProgramsState extends State<Programs> {
                       ),
                     ],
                   ),
-                  IconButton(
-                    icon: const Icon(Icons.notifications_outlined),
-                    onPressed: () {},
+                  Row(
+                    children: [
+                      IconButton(
+                        icon: const Icon(Icons.calendar_today),
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => const WorkoutCalendarPage(),
+                            ),
+                          ).then((_) => _loadStats());
+                        },
+                      ),
+                      IconButton(
+                        icon: const Icon(Icons.notifications_outlined),
+                        onPressed: () {},
+                      ),
+                    ],
                   ),
                 ],
               ),
 
               const SizedBox(height: 24),
 
-              // Steps Count Circular Progress
+              // Workout Streak Ring
               CircularProgressCard(
-                title: 'Steps count',
-                current: 6320,
-                goal: 12000,
+                title: 'Workout Streak',
+                current: _currentStreak,
+                goal: _bestStreak > _currentStreak ? _bestStreak : _currentStreak + 3,
                 color: theme.colorScheme.primary,
+                subtitle: 'Best: $_bestStreak days',
               ),
 
               const SizedBox(height: 20),
 
-              // Stats Row
-              Row(
-                children: const [
-                  StatCard(
-                    icon: Icons.directions_walk,
-                    label: 'Distance',
-                    value: '2.4 km',
+              // Stats Grid - 4 Metrics
+              Column(
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _metricCard(
+                          theme,
+                          icon: Icons.event_available,
+                          label: 'Weekly Goal',
+                          value: '$_weeklyWorkouts',
+                          target: '/ 5',
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _metricCard(
+                          theme,
+                          icon: Icons.access_time,
+                          label: 'Active Today',
+                          value: '$_activeMinutes',
+                          target: ' min',
+                          color: theme.colorScheme.secondary,
+                        ),
+                      ),
+                    ],
                   ),
-                  SizedBox(width: 12),
-                  StatCard(
-                    icon: Icons.local_fire_department,
-                    label: 'Calories',
-                    value: '708',
-                  ),
-                  SizedBox(width: 12),
-                  StatCard(
-                    icon: Icons.favorite_border,
-                    label: 'Heart',
-                    value: '190',
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _metricCard(
+                          theme,
+                          icon: Icons.local_fire_department,
+                          label: 'Calories',
+                          value: '$_todayCalories',
+                          target: ' cal',
+                          color: const Color(0xFFEF4444),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: _metricCard(
+                          theme,
+                          icon: Icons.fitness_center,
+                          label: 'Workouts',
+                          value: '$_weeklyWorkouts',
+                          target: ' this week',
+                          color: const Color(0xFF10B981),
+                        ),
+                      ),
+                    ],
                   ),
                 ],
               ),
@@ -369,62 +451,392 @@ class _ProgramsState extends State<Programs> {
 
               const SizedBox(height: 28),
 
-              // This Week Section
-              Text(
-                'This week',
-                style: theme.textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w700,
-                ),
+              // Achievements & Badges Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Achievements',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      'View all',
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 12),
 
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
+              SizedBox(
+                height: 190,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
                   children: [
-                    _weekStat(
-                      context,
-                      icon: Icons.fitness_center,
-                      label: 'Workouts',
-                      value: '4/5 completed',
-                      progress: 0.8,
-                      color: theme.colorScheme.primary,
+                    _achievementBadge(
+                      theme,
+                      icon: '🔥',
+                      title: '${_currentStreak} Day Streak',
+                      description: 'Keep it going!',
+                      isUnlocked: _currentStreak >= 1,
+                      progress: _currentStreak >= 5 ? 1.0 : _currentStreak / 5,
+                      nextLevel: _currentStreak >= 5 ? 'Achieved!' : '${5 - _currentStreak} days to 5-day streak',
                     ),
-                    const SizedBox(height: 16),
-                    _weekStat(
-                      context,
-                      icon: Icons.local_fire_department,
-                      label: 'Calories burned',
-                      value: '2,840 kcal',
-                      progress: 0.71,
-                      color: const Color(0xFFEF4444),
+                    _achievementBadge(
+                      theme,
+                      icon: '💪',
+                      title: 'First Workout',
+                      description: 'You started!',
+                      isUnlocked: _weeklyWorkouts >= 1,
+                      progress: 1.0,
+                      nextLevel: 'Unlocked',
                     ),
-                    const SizedBox(height: 16),
-                    _weekStat(
-                      context,
-                      icon: Icons.access_time,
-                      label: 'Active time',
-                      value: '3h 42min',
-                      progress: 0.65,
-                      color: theme.colorScheme.secondary,
+                    _achievementBadge(
+                      theme,
+                      icon: '🎯',
+                      title: 'Week Warrior',
+                      description: 'Complete 5 workouts',
+                      isUnlocked: _weeklyWorkouts >= 5,
+                      progress: _weeklyWorkouts / 5,
+                      nextLevel: _weeklyWorkouts >= 5 ? 'Achieved!' : '${5 - _weeklyWorkouts} more this week',
+                    ),
+                    _achievementBadge(
+                      theme,
+                      icon: '⚡',
+                      title: 'Calorie Crusher',
+                      description: 'Burn 500 cal/day',
+                      isUnlocked: _todayCalories >= 500,
+                      progress: (_todayCalories / 500).clamp(0.0, 1.0),
+                      nextLevel: _todayCalories >= 500 ? 'Achieved!' : '${500 - _todayCalories} cal to go',
+                    ),
+                    _achievementBadge(
+                      theme,
+                      icon: '⏱️',
+                      title: 'Active 45',
+                      description: '45 min active/day',
+                      isUnlocked: _activeMinutes >= 45,
+                      progress: (_activeMinutes / 45).clamp(0.0, 1.0),
+                      nextLevel: _activeMinutes >= 45 ? 'Achieved!' : '${45 - _activeMinutes} min to go',
+                    ),
+                    _achievementBadge(
+                      theme,
+                      icon: '🏆',
+                      title: 'Champion',
+                      description: '30 day streak',
+                      isUnlocked: _bestStreak >= 30,
+                      progress: (_currentStreak / 30).clamp(0.0, 1.0),
+                      nextLevel: _bestStreak >= 30 ? 'Legendary!' : '${30 - _currentStreak} days to go',
                     ),
                   ],
                 ),
               ),
+
+              const SizedBox(height: 28),
+
+              // Fitness Articles Section
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    'Fitness Tips & Articles',
+                    style: theme.textTheme.titleLarge?.copyWith(
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {},
+                    child: Text(
+                      'See all',
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              const SizedBox(height: 12),
+
+              SizedBox(
+                height: 220,
+                child: ListView(
+                  scrollDirection: Axis.horizontal,
+                  children: [
+                    _articleCard(
+                      theme,
+                      image: 'assets/images/image001.jpg',
+                      category: 'Nutrition',
+                      title: 'Pre-Workout Nutrition Guide',
+                      readTime: '5 min read',
+                    ),
+                    _articleCard(
+                      theme,
+                      image: 'assets/images/image002.jpg',
+                      category: 'Training',
+                      title: 'How to Build Muscle Effectively',
+                      readTime: '8 min read',
+                    ),
+                    _articleCard(
+                      theme,
+                      image: 'assets/images/image003.jpg',
+                      category: 'Recovery',
+                      title: 'The Importance of Rest Days',
+                      readTime: '6 min read',
+                    ),
+                    _articleCard(
+                      theme,
+                      image: 'assets/images/image004.jpg',
+                      category: 'Motivation',
+                      title: 'Stay Consistent: 7 Tips',
+                      readTime: '4 min read',
+                    ),
+                    _articleCard(
+                      theme,
+                      image: 'assets/images/image005.jpg',
+                      category: 'Wellness',
+                      title: 'Sleep & Fitness Performance',
+                      readTime: '7 min read',
+                    ),
+                  ],
+                ),
+              ),
+
+              const SizedBox(height: 20),
             ],
           ),
+        ),
+      ),
+    );
+  }
+
+  Widget _achievementBadge(
+    ThemeData theme, {
+    required String icon,
+    required String title,
+    required String description,
+    required bool isUnlocked,
+    required double progress,
+    required String nextLevel,
+  }) {
+    return Container(
+      width: 170,
+      margin: const EdgeInsets.only(right: 16),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: isUnlocked
+            ? LinearGradient(
+                colors: [
+                  theme.colorScheme.primary,
+                  theme.colorScheme.primary.withOpacity(0.8),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              )
+            : null,
+        color: isUnlocked ? null : theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: !isUnlocked
+            ? Border.all(
+                color: theme.dividerColor,
+                width: 2,
+              )
+            : null,
+        boxShadow: [
+          BoxShadow(
+            color: isUnlocked
+                ? theme.colorScheme.primary.withOpacity(0.3)
+                : Colors.black.withOpacity(0.04),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                icon,
+                style: TextStyle(
+                  fontSize: 32,
+                  color: isUnlocked ? Colors.white : Colors.grey,
+                ),
+              ),
+              if (isUnlocked)
+                const Icon(
+                  Icons.check_circle,
+                  color: Colors.white,
+                  size: 20,
+                ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w700,
+              color: isUnlocked ? Colors.white : theme.colorScheme.onSurface,
+              fontSize: 14,
+            ),
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            description,
+            style: theme.textTheme.bodySmall?.copyWith(
+              color: isUnlocked
+                  ? Colors.white.withOpacity(0.9)
+                  : theme.textTheme.bodySmall?.color,
+              fontSize: 11,
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const Spacer(),
+          if (!isUnlocked) ...[
+            ClipRRect(
+              borderRadius: BorderRadius.circular(10),
+              child: LinearProgressIndicator(
+                value: progress,
+                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
+                valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
+                minHeight: 4,
+              ),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              nextLevel,
+              style: theme.textTheme.bodySmall?.copyWith(
+                fontSize: 9,
+                color: theme.colorScheme.primary,
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ] else
+            Text(
+              nextLevel,
+              style: TextStyle(
+                fontSize: 9,
+                color: Colors.white.withOpacity(0.9),
+                fontWeight: FontWeight.w600,
+              ),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+        ],
+      ),
+    );
+  }
+
+  Widget _articleCard(
+    ThemeData theme, {
+    required String image,
+    required String category,
+    required String title,
+    required String readTime,
+  }) {
+    return GestureDetector(
+      onTap: () {
+        // Navigate to article detail
+      },
+      child: Container(
+        width: 280,
+        margin: const EdgeInsets.only(right: 16),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.06),
+              blurRadius: 12,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Stack(
+              children: [
+                ClipRRect(
+                  borderRadius: const BorderRadius.vertical(
+                    top: Radius.circular(20),
+                  ),
+                  child: Image.asset(
+                    image,
+                    height: 120,
+                    width: double.infinity,
+                    fit: BoxFit.cover,
+                  ),
+                ),
+                Positioned(
+                  top: 12,
+                  left: 12,
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Text(
+                      category,
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+            Padding(
+              padding: const EdgeInsets.all(16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  const SizedBox(height: 6),
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: theme.textTheme.bodySmall?.color,
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        readTime,
+                        style: theme.textTheme.bodySmall,
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -621,60 +1033,72 @@ class _ProgramsState extends State<Programs> {
     );
   }
 
-  Widget _weekStat(
-    BuildContext context, {
+  Widget _metricCard(
+    ThemeData theme, {
     required IconData icon,
     required String label,
     required String value,
-    required double progress,
+    required String target,
     required Color color,
   }) {
-    final theme = Theme.of(context);
-
-    return Row(
-      children: [
-        Container(
-          padding: const EdgeInsets.all(10),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: Icon(icon, color: color, size: 20),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
             children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    label,
-                    style: theme.textTheme.bodyMedium,
-                  ),
-                  Text(
-                    value,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                ],
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withOpacity(0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Icon(icon, color: color, size: 20),
               ),
-              const SizedBox(height: 6),
-              ClipRRect(
-                borderRadius: BorderRadius.circular(10),
-                child: LinearProgressIndicator(
-                  value: progress,
-                  backgroundColor: color.withOpacity(0.1),
-                  valueColor: AlwaysStoppedAnimation(color),
-                  minHeight: 6,
+              const Spacer(),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            label,
+            style: theme.textTheme.bodySmall,
+          ),
+          const SizedBox(height: 4),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              Text(
+                value,
+                style: theme.textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w800,
+                  color: color,
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.only(bottom: 2, left: 2),
+                child: Text(
+                  target,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: theme.textTheme.bodySmall?.color?.withOpacity(0.6),
+                  ),
                 ),
               ),
             ],
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

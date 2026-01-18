@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:fitness_flutter/features/workouts/models/exercise.dart';
+import 'package:fitness_flutter/services/workout_tracking_service.dart';
 
 class WorkoutDetailPage extends StatefulWidget {
   final Exercise exercise;
@@ -17,6 +18,7 @@ class WorkoutDetailPage extends StatefulWidget {
 
 class _WorkoutDetailPageState extends State<WorkoutDetailPage> {
   int _currentStep = 0;
+  final _trackingService = WorkoutTrackingService();
 
   List<Map<String, dynamic>> get _workoutSteps {
     final workoutPlans = {
@@ -729,6 +731,17 @@ class _WorkoutDetailPageState extends State<WorkoutDetailPage> {
   void _showCompletionDialog() {
     final theme = Theme.of(context);
     final totalCalories = _workoutSteps.fold<int>(0, (sum, step) => sum + (step['calories'] as int));
+    final totalMinutes = int.tryParse(widget.exercise.time.replaceAll(RegExp(r'[^0-9]'), '')) ?? 10;
+    
+    // Save workout completion
+    _trackingService.saveWorkoutCompletion(
+      WorkoutCompletion(
+        workoutTitle: widget.exercise.title,
+        completedAt: DateTime.now(),
+        caloriesBurned: totalCalories,
+        durationMinutes: totalMinutes,
+      ),
+    );
     
     showDialog(
       context: context,

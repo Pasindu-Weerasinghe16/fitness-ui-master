@@ -6,6 +6,7 @@ class CircularProgressCard extends StatelessWidget {
   final int current;
   final int goal;
   final Color color;
+  final String? subtitle;
 
   const CircularProgressCard({
     super.key,
@@ -13,6 +14,7 @@ class CircularProgressCard extends StatelessWidget {
     required this.current,
     required this.goal,
     this.color = const Color(0xFFFF8C42),
+    this.subtitle,
   });
 
   @override
@@ -46,6 +48,16 @@ class CircularProgressCard extends StatelessWidget {
               ),
             ],
           ),
+          if (subtitle != null) ...[
+            const SizedBox(height: 4),
+            Text(
+              subtitle!,
+              style: theme.textTheme.bodySmall?.copyWith(
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ],
           const SizedBox(height: 20),
           Center(
             child: SizedBox(
