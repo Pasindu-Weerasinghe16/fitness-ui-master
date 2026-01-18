@@ -3,6 +3,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_up_page.dart';
 import 'package:fitness_flutter/app/shell/tabs.dart';
 import 'package:fitness_flutter/shared/widgets/app_header.dart';
+import 'package:fitness_flutter/services/user_profile_service.dart';
 
 class SignInPage extends StatefulWidget {
   const SignInPage({super.key});
@@ -31,10 +32,39 @@ class _SignInPageState extends State<SignInPage> {
     setState(() => _isLoading = true);
 
     try {
-      await FirebaseAuth.instance.signInWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      final auth = FirebaseAuth.instance;
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+      final currentUser = auth.currentUser;
+
+      if (currentUser != null && currentUser.isAnonymous) {
+        // Upgrade anonymous account by linking credentials.
+        try {
+          await currentUser.linkWithCredential(
+            EmailAuthProvider.credential(email: email, password: password),
+          );
+          await currentUser.reload();
+        } on FirebaseAuthException catch (e) {
+          // If the email already belongs to another account, fall back to normal sign-in.
+          if (e.code == 'credential-already-in-use' || e.code == 'email-already-in-use') {
+            await auth.signOut();
+            await auth.signInWithEmailAndPassword(email: email, password: password);
+          } else {
+            rethrow;
+          }
+        }
+      } else {
+        await auth.signInWithEmailAndPassword(email: email, password: password);
+      }
+
+      final user = auth.currentUser;
+      if (user != null) {
+        await UserProfileService().save(
+          uid: user.uid,
+          displayName: user.displayName,
+          email: user.email,
+        );
+      }
 
       if (!mounted) return;
       Navigator.of(context).pushReplacement(
@@ -55,6 +85,34 @@ class _SignInPageState extends State<SignInPage> {
         const SnackBar(
           content: Text('Sign in failed. Please try again.'),
         ),
+      );
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _continueAsGuest() async {
+    setState(() => _isLoading = true);
+    try {
+      await FirebaseAuth.instance.signInAnonymously();
+
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(builder: (_) => const Tabs()),
+      );
+    } on FirebaseAuthException catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Guest sign-in failed (${e.code}): ${e.message ?? 'Please try again.'}',
+          ),
+        ),
+      );
+    } catch (_) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Guest sign-in failed. Please try again.')),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -260,6 +318,18 @@ class _SignInPageState extends State<SignInPage> {
                       },
                       icon: const Icon(Icons.g_mobiledata, size: 24),
                       label: const Text('Continue with Google'),
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      onPressed: _isLoading ? null : _continueAsGuest,
+                      icon: const Icon(Icons.person_outline, size: 22),
+                      label: const Text('Continue as Guest'),
                       style: OutlinedButton.styleFrom(
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(

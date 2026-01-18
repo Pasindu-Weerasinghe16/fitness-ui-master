@@ -12,6 +12,63 @@ class PersonalDetailsPage extends StatelessWidget {
     return asDouble.toStringAsFixed(1);
   }
 
+  Future<void> _editDisplayName(BuildContext context, User user, UserProfile? profile) async {
+    final controller = TextEditingController(
+      text: (profile?.displayName?.trim().isNotEmpty ?? false)
+          ? profile!.displayName!.trim()
+          : (user.displayName?.trim() ?? ''),
+    );
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Update Name'),
+          content: TextField(
+            controller: controller,
+            textInputAction: TextInputAction.done,
+            decoration: const InputDecoration(
+              labelText: 'Display name',
+              hintText: 'e.g. Pasindu',
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) return;
+    final name = controller.text.trim();
+    if (name.isEmpty) return;
+
+    try {
+      // Save to Firestore profile
+      await UserProfileService().save(uid: user.uid, displayName: name, email: user.email);
+      // Also update FirebaseAuth profile so other screens using user.displayName get it.
+      await user.updateDisplayName(name);
+      await user.reload();
+
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name updated')),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Name update failed. Please try again.')),
+      );
+    }
+  }
+
   Future<void> _editHeightWeight(BuildContext context, User user, UserProfile? profile) async {
     final heightController = TextEditingController(
       text: profile?.heightCm?.toString(),
@@ -107,6 +164,11 @@ class PersonalDetailsPage extends StatelessWidget {
                 stream: UserProfileService().watch(user.uid),
                 builder: (context, snapshot) {
                   final profile = snapshot.data;
+                  final displayName = (profile?.displayName != null && profile!.displayName!.trim().isNotEmpty)
+                      ? profile.displayName!.trim()
+                      : ((user.displayName != null && user.displayName!.trim().isNotEmpty)
+                          ? user.displayName!.trim()
+                          : (user.email ?? 'User'));
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -155,9 +217,7 @@ class PersonalDetailsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     Text(
-                      (user.displayName != null && user.displayName!.trim().isNotEmpty)
-                          ? user.displayName!.trim()
-                          : (user.email ?? 'User'),
+                      displayName,
                       style: const TextStyle(
                         fontSize: 24,
                         fontWeight: FontWeight.w700,
@@ -177,6 +237,21 @@ class PersonalDetailsPage extends StatelessWidget {
               ),
 
               const SizedBox(height: 24),
+
+              // Name
+              _sectionTitle(theme, 'Profile'),
+              const SizedBox(height: 12),
+              InkWell(
+                onTap: () => _editDisplayName(context, user, profile),
+                borderRadius: BorderRadius.circular(16),
+                child: _infoCard(
+                  theme,
+                  icon: Icons.badge_outlined,
+                  label: 'Name',
+                  value: displayName,
+                ),
+              ),
+              const SizedBox(height: 10),
 
               // Basic Info Section
               _sectionTitle(theme, 'Basic Information'),

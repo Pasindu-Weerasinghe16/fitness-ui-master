@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 class UserProfile {
   const UserProfile({
     required this.uid,
+    this.displayName,
     this.email,
     this.heightCm,
     this.weightKg,
@@ -11,6 +12,7 @@ class UserProfile {
   });
 
   final String uid;
+  final String? displayName;
   final String? email;
   final num? heightCm;
   final num? weightKg;
@@ -28,6 +30,7 @@ class UserProfile {
 
     return UserProfile(
       uid: snap.id,
+      displayName: (data['displayName'] as String?)?.trim(),
       email: (data['email'] as String?)?.trim(),
       heightCm: data['heightCm'] as num?,
       weightKg: data['weightKg'] as num?,
@@ -53,11 +56,13 @@ class UserProfileService {
 
   Future<void> save({
     required String uid,
+    String? displayName,
     String? email,
     num? heightCm,
     num? weightKg,
   }) async {
     final data = <String, Object?>{
+      if (displayName != null) 'displayName': displayName.trim(),
       if (email != null) 'email': email.trim(),
       if (heightCm != null) 'heightCm': heightCm,
       if (weightKg != null) 'weightKg': weightKg,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:fitness_flutter/app/shell/tabs.dart';
 import 'package:fitness_flutter/shared/widgets/app_header.dart';
+import 'package:fitness_flutter/services/user_profile_service.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -45,10 +46,24 @@ class _SignUpPageState extends State<SignUpPage> {
     setState(() => _isLoading = true);
 
     try {
-      final credential = await FirebaseAuth.instance.createUserWithEmailAndPassword(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      final auth = FirebaseAuth.instance;
+      final email = _emailController.text.trim();
+      final password = _passwordController.text;
+
+      final currentUser = auth.currentUser;
+      UserCredential credential;
+
+      if (currentUser != null && currentUser.isAnonymous) {
+        // Upgrade anonymous account by linking credentials, preserving the same uid.
+        credential = await currentUser.linkWithCredential(
+          EmailAuthProvider.credential(email: email, password: password),
+        );
+      } else {
+        credential = await auth.createUserWithEmailAndPassword(
+          email: email,
+          password: password,
+        );
+      }
 
       final name = _nameController.text.trim();
       final user = credential.user;
@@ -56,6 +71,13 @@ class _SignUpPageState extends State<SignUpPage> {
         if (name.isNotEmpty) {
           await user.updateDisplayName(name);
         }
+        await user.reload();
+
+        await UserProfileService().save(
+          uid: user.uid,
+          displayName: name.isNotEmpty ? name : user.displayName,
+          email: user.email,
+        );
       }
 
       if (!mounted) return;

@@ -29,7 +29,7 @@ class MyApp extends StatelessWidget {
               }
 
               final user = snapshot.data;
-              if (user != null) {
+              if (user != null && !user.isAnonymous) {
                 return const Tabs();
               }
               return const SignInPage();

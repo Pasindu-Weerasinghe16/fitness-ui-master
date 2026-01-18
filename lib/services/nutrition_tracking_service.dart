@@ -1,4 +1,8 @@
 import 'dart:convert';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class MealEntry {
@@ -74,6 +78,21 @@ class MealTemplate {
 class NutritionTrackingService {
   static const String _keyMealEntries = 'meal_entries';
   static const String _keyNutritionGoals = 'nutrition_goals';
+
+  User? get _user => FirebaseAuth.instance.currentUser;
+
+  DocumentReference<Map<String, dynamic>> _userDoc(String uid) =>
+      FirebaseFirestore.instance.collection('users').doc(uid);
+
+  CollectionReference<Map<String, dynamic>> _mealsCol(String uid) =>
+      _userDoc(uid).collection('meals');
+
+  DocumentReference<Map<String, dynamic>> _goalsDoc(String uid) =>
+      _userDoc(uid).collection('nutrition').doc('goals');
+
+  DateTime _startOfDay(DateTime date) => DateTime(date.year, date.month, date.day);
+
+  DateTime _endOfDayExclusive(DateTime date) => _startOfDay(date).add(const Duration(days: 1));
 
   Future<List<MealEntry>> _getAllMeals() async {
     final prefs = await SharedPreferences.getInstance();
@@ -356,24 +375,107 @@ class NutritionTrackingService {
   ];
 
   Future<void> addMealEntry(MealEntry entry) async {
-    final entries = await _getAllMeals();
-    entries.add(entry);
-    await _saveAllMeals(entries);
+    final user = _user;
+    if (user == null) {
+      final entries = await _getAllMeals();
+      entries.add(entry);
+      await _saveAllMeals(entries);
+      return;
+    }
+
+    try {
+      await _mealsCol(user.uid).doc(entry.id).set({
+        'id': entry.id,
+        'name': entry.name,
+        'mealType': entry.mealType,
+        'calories': entry.calories,
+        'carbs': entry.carbs,
+        'protein': entry.protein,
+        'fat': entry.fat,
+        'timestamp': Timestamp.fromDate(entry.timestamp),
+        'imagePath': entry.imagePath,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' || e.code == 'unauthenticated') {
+        final entries = await _getAllMeals();
+        entries.add(entry);
+        await _saveAllMeals(entries);
+        return;
+      }
+      rethrow;
+    }
   }
 
   Future<void> removeMealEntry(String id) async {
-    final entries = await _getAllMeals();
-    entries.removeWhere((e) => e.id == id);
-    await _saveAllMeals(entries);
+    final user = _user;
+    if (user == null) {
+      final entries = await _getAllMeals();
+      entries.removeWhere((e) => e.id == id);
+      await _saveAllMeals(entries);
+      return;
+    }
+
+    try {
+      await _mealsCol(user.uid).doc(id).delete();
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' || e.code == 'unauthenticated') {
+        final entries = await _getAllMeals();
+        entries.removeWhere((e) => e.id == id);
+        await _saveAllMeals(entries);
+        return;
+      }
+      rethrow;
+    }
   }
 
   Future<List<MealEntry>> getMealsForDate(DateTime date) async {
-    final allEntries = await _getAllMeals();
-    return allEntries.where((entry) {
-      return entry.timestamp.year == date.year &&
-          entry.timestamp.month == date.month &&
-          entry.timestamp.day == date.day;
-    }).toList();
+    final user = _user;
+    if (user == null) {
+      final allEntries = await _getAllMeals();
+      return allEntries.where((entry) {
+        return entry.timestamp.year == date.year &&
+            entry.timestamp.month == date.month &&
+            entry.timestamp.day == date.day;
+      }).toList();
+    }
+
+    final start = _startOfDay(date);
+    final end = _endOfDayExclusive(date);
+    try {
+      final snap = await _mealsCol(user.uid)
+          .where('timestamp', isGreaterThanOrEqualTo: Timestamp.fromDate(start))
+          .where('timestamp', isLessThan: Timestamp.fromDate(end))
+          .orderBy('timestamp')
+          .get();
+
+      return snap.docs.map((d) {
+        final data = d.data();
+        final ts = data['timestamp'];
+        final timestamp = ts is Timestamp ? ts.toDate() : DateTime.tryParse('${data['timestamp']}') ?? DateTime.now();
+        return MealEntry(
+          id: (data['id'] ?? d.id) as String,
+          name: (data['name'] ?? '') as String,
+          mealType: (data['mealType'] ?? 'Meal') as String,
+          calories: (data['calories'] ?? 0) as int,
+          carbs: (data['carbs'] ?? 0) as int,
+          protein: (data['protein'] ?? 0) as int,
+          fat: (data['fat'] ?? 0) as int,
+          timestamp: timestamp,
+          imagePath: (data['imagePath'] ?? 'assets/images/image001.jpg') as String,
+        );
+      }).toList();
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' || e.code == 'unauthenticated') {
+        final allEntries = await _getAllMeals();
+        return allEntries.where((entry) {
+          return entry.timestamp.year == date.year &&
+              entry.timestamp.month == date.month &&
+              entry.timestamp.day == date.day;
+        }).toList();
+      }
+      rethrow;
+    }
   }
 
   Future<List<MealEntry>> getTodayMeals() async {
@@ -413,36 +515,90 @@ class NutritionTrackingService {
     required int proteinGoal,
     required int fatGoal,
   }) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString(_keyNutritionGoals, jsonEncode({
-      'calories': calorieGoal,
-      'carbs': carbsGoal,
-      'protein': proteinGoal,
-      'fat': fatGoal,
-    }));
+    final user = _user;
+    if (user == null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString(_keyNutritionGoals, jsonEncode({
+        'calories': calorieGoal,
+        'carbs': carbsGoal,
+        'protein': proteinGoal,
+        'fat': fatGoal,
+      }));
+      return;
+    }
+
+    try {
+      await _goalsDoc(user.uid).set({
+        'calories': calorieGoal,
+        'carbs': carbsGoal,
+        'protein': proteinGoal,
+        'fat': fatGoal,
+        'updatedAt': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' || e.code == 'unauthenticated') {
+        final prefs = await SharedPreferences.getInstance();
+        await prefs.setString(_keyNutritionGoals, jsonEncode({
+          'calories': calorieGoal,
+          'carbs': carbsGoal,
+          'protein': proteinGoal,
+          'fat': fatGoal,
+        }));
+        return;
+      }
+      rethrow;
+    }
   }
 
   Future<Map<String, int>> getNutritionGoals() async {
-    final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString(_keyNutritionGoals);
-    
-    if (jsonString == null) {
-      // Default goals
+    const defaults = {
+      'calories': 2145,
+      'carbs': 268,
+      'protein': 107,
+      'fat': 71,
+    };
+
+    final user = _user;
+    if (user == null) {
+      final prefs = await SharedPreferences.getInstance();
+      final jsonString = prefs.getString(_keyNutritionGoals);
+      if (jsonString == null) return defaults;
+
+      final Map<String, dynamic> json = jsonDecode(jsonString);
       return {
-        'calories': 2145,
-        'carbs': 268,
-        'protein': 107,
-        'fat': 71,
+        'calories': json['calories'],
+        'carbs': json['carbs'],
+        'protein': json['protein'],
+        'fat': json['fat'],
       };
     }
-    
-    final Map<String, dynamic> json = jsonDecode(jsonString);
-    return {
-      'calories': json['calories'],
-      'carbs': json['carbs'],
-      'protein': json['protein'],
-      'fat': json['fat'],
-    };
+
+    try {
+      final snap = await _goalsDoc(user.uid).get();
+      if (!snap.exists) return defaults;
+      final data = snap.data() ?? const {};
+      return {
+        'calories': (data['calories'] ?? defaults['calories']) as int,
+        'carbs': (data['carbs'] ?? defaults['carbs']) as int,
+        'protein': (data['protein'] ?? defaults['protein']) as int,
+        'fat': (data['fat'] ?? defaults['fat']) as int,
+      };
+    } on FirebaseException catch (e) {
+      if (e.code == 'permission-denied' || e.code == 'unauthenticated') {
+        final prefs = await SharedPreferences.getInstance();
+        final jsonString = prefs.getString(_keyNutritionGoals);
+        if (jsonString == null) return defaults;
+
+        final Map<String, dynamic> json = jsonDecode(jsonString);
+        return {
+          'calories': json['calories'],
+          'carbs': json['carbs'],
+          'protein': json['protein'],
+          'fat': json['fat'],
+        };
+      }
+      rethrow;
+    }
   }
 
   List<MealTemplate> getMealsByCategory(String category) {

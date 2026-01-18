@@ -5,6 +5,7 @@ import 'package:fitness_flutter/features/profile/pages/personal_details_page.dar
 import 'package:fitness_flutter/shared/widgets/Header.dart';
 import 'package:fitness_flutter/app/theme/theme_provider.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_in_page.dart';
+import 'package:fitness_flutter/features/auth/pages/sign_up_page.dart';
 import 'package:fitness_flutter/services/user_profile_service.dart';
 
 class AccountPage extends StatelessWidget {
@@ -19,6 +20,12 @@ class AccountPage extends StatelessWidget {
       return atIndex > 0 ? email.substring(0, atIndex) : email;
     }
     return 'Guest';
+  }
+
+  String _profileDisplayName(User? user, UserProfile? profile) {
+    final pName = profile?.displayName?.trim();
+    if (pName != null && pName.isNotEmpty) return pName;
+    return _userDisplayName(user);
   }
 
   @override
@@ -81,9 +88,14 @@ class AccountPage extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            _userDisplayName(user),
-                            style: theme.textTheme.titleLarge,
+                          StreamBuilder<UserProfile?>(
+                            stream: user == null ? const Stream.empty() : profileService.watch(user.uid),
+                            builder: (context, snapshot) {
+                              return Text(
+                                _profileDisplayName(user, snapshot.data),
+                                style: theme.textTheme.titleLarge,
+                              );
+                            },
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -161,6 +173,55 @@ class AccountPage extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 12),
+
+              if (user != null && user.isAnonymous) ...[
+                _buildSettingsTile(
+                  context,
+                  icon: Icons.login,
+                  title: 'Upgrade account',
+                  subtitle: 'Sign in with email to keep your data',
+                  onTap: () {
+                    showModalBottomSheet(
+                      context: context,
+                      showDragHandle: true,
+                      builder: (sheetContext) {
+                        return SafeArea(
+                          child: Padding(
+                            padding: const EdgeInsets.all(16),
+                            child: Column(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                ListTile(
+                                  leading: const Icon(Icons.person_add_alt_1),
+                                  title: const Text('Create account'),
+                                  subtitle: const Text('Link this device account to email/password'),
+                                  onTap: () {
+                                    Navigator.pop(sheetContext);
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (_) => const SignUpPage()),
+                                    );
+                                  },
+                                ),
+                                ListTile(
+                                  leading: const Icon(Icons.login),
+                                  title: const Text('Sign in'),
+                                  subtitle: const Text('Use an existing email/password account'),
+                                  onTap: () {
+                                    Navigator.pop(sheetContext);
+                                    Navigator.of(context).push(
+                                      MaterialPageRoute(builder: (_) => const SignInPage()),
+                                    );
+                                  },
+                                ),
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                ),
+              ],
               
               _buildSettingsTile(
                 context,
