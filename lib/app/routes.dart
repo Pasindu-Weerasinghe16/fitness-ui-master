@@ -20,4 +20,11 @@ class AppRoutes {
 
   // Insights & charts
   static const String insights = '/insights';
+
+  // Article topics
+  static const String nutritionArticles = '/articles/nutrition';
+  static const String trainingArticles = '/articles/training';
+  static const String recoveryArticles = '/articles/recovery';
+  static const String motivationArticles = '/articles/motivation';
+  static const String wellnessArticles = '/articles/wellness';
 }
