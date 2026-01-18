@@ -241,6 +241,9 @@ class InsightsService {
     return d.subtract(Duration(days: d.weekday - 1));
   }
 
+  bool _isSameDay(DateTime a, DateTime b) =>
+      a.year == b.year && a.month == b.month && a.day == b.day;
+
   String _weekKey(DateTime date, String prefix) {
     final start = _startOfWeek(date);
     return '$prefix:${start.year}-${start.month.toString().padLeft(2, '0')}-${start.day.toString().padLeft(2, '0')}';
@@ -275,6 +278,28 @@ class InsightsService {
     final key = _weekKey(anyDayInWeek, _mealPlanKeyPrefix);
     await prefs.setString(
         key, jsonEncode(plan.map((d) => d.toJson()).toList()));
+  }
+
+  Future<List<PlannedMealDay>> removeMealFromMealPlanForWeek({
+    required DateTime anyDayInWeek,
+    required DateTime dayDate,
+    required int mealIndex,
+  }) async {
+    final existing = await loadMealPlanForWeek(anyDayInWeek) ??
+        await generateMealPlanForWeek(anyDayInWeek: anyDayInWeek);
+
+    final dayIdx = existing.indexWhere((d) => _isSameDay(d.date, dayDate));
+    if (dayIdx < 0) return existing;
+
+    final meals = List<MealTemplate>.from(existing[dayIdx].meals);
+    if (mealIndex < 0 || mealIndex >= meals.length) return existing;
+    meals.removeAt(mealIndex);
+
+    final updated = List<PlannedMealDay>.from(existing);
+    updated[dayIdx] = PlannedMealDay(date: existing[dayIdx].date, meals: meals);
+
+    await saveMealPlanForWeek(anyDayInWeek, updated);
+    return updated;
   }
 
   Future<List<PlannedWorkoutDay>?> loadWorkoutPlanForWeek(

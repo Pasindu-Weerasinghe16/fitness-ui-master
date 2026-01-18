@@ -410,6 +410,7 @@ class _ResultsState extends State<Results> {
 
   void _showMealPlan(BuildContext context, List<PlannedMealDay> plan) {
     final theme = Theme.of(context);
+    var localPlan = plan;
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
@@ -439,34 +440,82 @@ class _ResultsState extends State<Results> {
               ),
               const SizedBox(height: 8),
               Expanded(
-                child: ListView.builder(
-                  itemCount: plan.length,
-                  itemBuilder: (context, index) {
-                    final day = plan[index];
-                    final title = MaterialLocalizations.of(context).formatFullDate(day.date);
-                    final total = day.meals.fold<int>(0, (s, m) => s + m.calories);
+                child: StatefulBuilder(
+                  builder: (context, setModalState) {
+                    return ListView.builder(
+                      itemCount: localPlan.length,
+                      itemBuilder: (context, index) {
+                        final day = localPlan[index];
+                        final title = MaterialLocalizations.of(context).formatFullDate(day.date);
+                        final total = day.meals.fold<int>(0, (s, m) => s + m.calories);
 
-                    return Container(
-                      margin: const EdgeInsets.only(bottom: 12),
-                      decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(18),
-                        border: Border.all(color: theme.dividerColor),
-                      ),
-                      child: ExpansionTile(
-                        title: Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
-                        subtitle: Text('$total kcal • ${day.meals.length} items', style: theme.textTheme.bodySmall),
-                        children: day.meals
-                            .map(
-                              (m) => ListTile(
+                        return Container(
+                          margin: const EdgeInsets.only(bottom: 12),
+                          decoration: BoxDecoration(
+                            color: theme.cardColor,
+                            borderRadius: BorderRadius.circular(18),
+                            border: Border.all(color: theme.dividerColor),
+                          ),
+                          child: ExpansionTile(
+                            title: Text(title, style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w800)),
+                            subtitle: Text('$total kcal • ${day.meals.length} items', style: theme.textTheme.bodySmall),
+                            children: day.meals.asMap().entries.map((entry) {
+                              final mealIndex = entry.key;
+                              final m = entry.value;
+
+                              return ListTile(
                                 dense: true,
                                 leading: Icon(Icons.restaurant, color: theme.colorScheme.primary),
                                 title: Text(m.name, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w700)),
                                 subtitle: Text('${m.category} • ${m.calories} kcal • C:${m.carbs}g P:${m.protein}g F:${m.fat}g', style: theme.textTheme.bodySmall),
-                              ),
-                            )
-                            .toList(),
-                      ),
+                                trailing: IconButton(
+                                  tooltip: 'Remove from plan',
+                                  icon: const Icon(Icons.delete_outline),
+                                  onPressed: () async {
+                                    final confirmed = await showDialog<bool>(
+                                      context: context,
+                                      builder: (context) {
+                                        return AlertDialog(
+                                          title: const Text('Remove meal?'),
+                                          content: Text('Remove “${m.name}” from this day\'s plan?'),
+                                          actions: [
+                                            TextButton(
+                                              onPressed: () => Navigator.pop(context, false),
+                                              child: const Text('Cancel'),
+                                            ),
+                                            FilledButton(
+                                              onPressed: () => Navigator.pop(context, true),
+                                              child: const Text('Remove'),
+                                            ),
+                                          ],
+                                        );
+                                      },
+                                    );
+
+                                    if (confirmed != true) return;
+
+                                    final updatedMeals = await _insights.removeMealFromMealPlanForWeek(
+                                      anyDayInWeek: day.date,
+                                      dayDate: day.date,
+                                      mealIndex: mealIndex,
+                                    );
+
+                                    if (!mounted) return;
+                                    setModalState(() => localPlan = updatedMeals);
+
+                                    final current = _weeklyPlans;
+                                    if (current != null) {
+                                      setState(() {
+                                        _weeklyPlans = WeeklyPlans(meals: updatedMeals, workouts: current.workouts);
+                                      });
+                                    }
+                                  },
+                                ),
+                              );
+                            }).toList(),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),

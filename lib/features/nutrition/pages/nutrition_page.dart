@@ -43,7 +43,7 @@ class _NutritionPageState extends State<NutritionPage> {
   Future<void> _openMealSelection(String mealType) async {
     final result = await Navigator.of(context).push<String>(
       MaterialPageRoute(
-        builder: (_) => MealSelectionPage(mealType: mealType),
+        builder: (_) => MealSelectionPage(mealType: mealType, selectedDate: _selectedDate),
       ),
     );
 

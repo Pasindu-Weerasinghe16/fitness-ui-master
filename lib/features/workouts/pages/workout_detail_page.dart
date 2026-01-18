@@ -732,84 +732,145 @@ class _WorkoutDetailPageState extends State<WorkoutDetailPage> {
     final theme = Theme.of(context);
     final totalCalories = _workoutSteps.fold<int>(0, (sum, step) => sum + (step['calories'] as int));
     final totalMinutes = int.tryParse(widget.exercise.time.replaceAll(RegExp(r'[^0-9]'), '')) ?? 10;
-    
-    // Save workout completion
-    _trackingService.saveWorkoutCompletion(
-      WorkoutCompletion(
-        workoutTitle: widget.exercise.title,
-        completedAt: DateTime.now(),
-        caloriesBurned: totalCalories,
-        durationMinutes: totalMinutes,
-      ),
-    );
-    
+
+    DateTime selectedDay = DateTime.now();
+
     showDialog(
       context: context,
-      builder: (context) => Dialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(24),
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(32),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: const Color(0xFF10B981).withOpacity(0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(
-                  Icons.celebration,
-                  size: 60,
-                  color: Color(0xFF10B981),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Text(
-                'Workout Complete!',
-                style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w800,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'Great job completing ${widget.exercise.title}! You burned approximately $totalCalories calories.',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: theme.textTheme.bodySmall?.color,
-                ),
-              ),
-              const SizedBox(height: 28),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    Navigator.pop(context); // Close dialog
-                    Navigator.pop(context); // Go back to workouts
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: theme.colorScheme.primary,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return Dialog(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(24),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withOpacity(0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.celebration,
+                      size: 60,
+                      color: Color(0xFF10B981),
                     ),
                   ),
-                  child: const Text(
-                    'Done',
-                    style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w700,
-                      color: Colors.white,
+                  const SizedBox(height: 24),
+                  Text(
+                    'Workout Complete!',
+                    style: theme.textTheme.headlineSmall?.copyWith(
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
-                ),
+                  const SizedBox(height: 12),
+                  Text(
+                    'Great job completing ${widget.exercise.title}! You burned approximately $totalCalories calories.',
+                    textAlign: TextAlign.center,
+                    style: theme.textTheme.bodyMedium?.copyWith(
+                      color: theme.textTheme.bodySmall?.color,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
+
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    decoration: BoxDecoration(
+                      color: theme.colorScheme.primary.withOpacity(0.08),
+                      borderRadius: BorderRadius.circular(14),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          Icons.calendar_today,
+                          size: 18,
+                          color: theme.colorScheme.primary,
+                        ),
+                        const SizedBox(width: 10),
+                        Expanded(
+                          child: Text(
+                            '${selectedDay.year}-${selectedDay.month.toString().padLeft(2, '0')}-${selectedDay.day.toString().padLeft(2, '0')}',
+                            style: theme.textTheme.titleMedium?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () async {
+                            final picked = await showDatePicker(
+                              context: context,
+                              initialDate: selectedDay,
+                              firstDate: DateTime(2020, 1, 1),
+                              lastDate: DateTime(2035, 12, 31),
+                            );
+                            if (picked == null) return;
+                            setState(() {
+                              selectedDay = picked;
+                            });
+                          },
+                          child: const Text('Change'),
+                        ),
+                      ],
+                    ),
+                  ),
+
+                  const SizedBox(height: 28),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () async {
+                        final now = DateTime.now();
+                        final completedAt = DateTime(
+                          selectedDay.year,
+                          selectedDay.month,
+                          selectedDay.day,
+                          now.hour,
+                          now.minute,
+                          now.second,
+                          now.millisecond,
+                          now.microsecond,
+                        );
+
+                        await _trackingService.saveWorkoutCompletion(
+                          WorkoutCompletion(
+                            workoutTitle: widget.exercise.title,
+                            completedAt: completedAt,
+                            caloriesBurned: totalCalories,
+                            durationMinutes: totalMinutes,
+                          ),
+                        );
+
+                        if (!context.mounted) return;
+                        Navigator.pop(context); // Close dialog
+                        Navigator.pop(context); // Go back to workouts
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: theme.colorScheme.primary,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                      ),
+                      child: const Text(
+                        'Done',
+                        style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w700,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-            ],
-          ),
-        ),
+            ),
+          );
+        },
       ),
     );
   }

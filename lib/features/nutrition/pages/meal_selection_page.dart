@@ -3,8 +3,13 @@ import '../../../services/nutrition_tracking_service.dart';
 
 class MealSelectionPage extends StatefulWidget {
   final String mealType;
+  final DateTime selectedDate;
 
-  const MealSelectionPage({super.key, required this.mealType});
+  const MealSelectionPage({
+    super.key,
+    required this.mealType,
+    required this.selectedDate,
+  });
 
   @override
   State<MealSelectionPage> createState() => _MealSelectionPageState();
@@ -162,6 +167,18 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
   Widget _mealCard(ThemeData theme, MealTemplate meal) {
     return GestureDetector(
       onTap: () async {
+        final now = DateTime.now();
+        final ts = DateTime(
+          widget.selectedDate.year,
+          widget.selectedDate.month,
+          widget.selectedDate.day,
+          now.hour,
+          now.minute,
+          now.second,
+          now.millisecond,
+          now.microsecond,
+        );
+
         // Add meal
         final entry = MealEntry(
           id: DateTime.now().millisecondsSinceEpoch.toString(),
@@ -171,7 +188,7 @@ class _MealSelectionPageState extends State<MealSelectionPage> {
           carbs: meal.carbs,
           protein: meal.protein,
           fat: meal.fat,
-          timestamp: DateTime.now(),
+          timestamp: ts,
           imagePath: meal.imagePath,
         );
 
