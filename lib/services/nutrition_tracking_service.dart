@@ -119,6 +119,7 @@ class NutritionTrackingService {
       carbs: 28,
       protein: 20,
       fat: 18,
+      imagePath: 'assets/images/scrambled_eggs_&_toast.jpg',
       tags: ['Protein', 'Carbs'],
     ),
     MealTemplate(
@@ -128,6 +129,7 @@ class NutritionTrackingService {
       carbs: 48,
       protein: 10,
       fat: 6,
+      imagePath: 'assets/images/oatmeal_with_berries.jpg',
       tags: ['Carbs', 'Fiber'],
     ),
     MealTemplate(
@@ -137,6 +139,7 @@ class NutritionTrackingService {
       carbs: 32,
       protein: 15,
       fat: 4,
+      imagePath: 'assets/images/greel_yogurt_parfait.jpg',
       tags: ['Protein', 'Dairy'],
     ),
     MealTemplate(
@@ -146,6 +149,7 @@ class NutritionTrackingService {
       carbs: 35,
       protein: 12,
       fat: 16,
+      imagePath: 'assets/images/avocado_toast.jpg',
       tags: ['Healthy Fats', 'Carbs'],
     ),
     MealTemplate(
@@ -155,6 +159,7 @@ class NutritionTrackingService {
       carbs: 38,
       protein: 24,
       fat: 6,
+      imagePath: 'assets/images/protein_smoothie.jpg',
       tags: ['Protein', 'Fruits'],
     ),
     MealTemplate(
@@ -164,6 +169,7 @@ class NutritionTrackingService {
       carbs: 68,
       protein: 10,
       fat: 12,
+      imagePath: 'assets/images/pancakes_with_syrup.jpg',
       tags: ['Carbs', 'Sweet'],
     ),
     
@@ -175,6 +181,7 @@ class NutritionTrackingService {
       carbs: 18,
       protein: 35,
       fat: 12,
+      imagePath: 'assets/images/grilled_chicken_salad.jpg',
       tags: ['Protein', 'Vegetables'],
     ),
     MealTemplate(
@@ -184,6 +191,7 @@ class NutritionTrackingService {
       carbs: 42,
       protein: 28,
       fat: 12,
+      imagePath: 'assets/images/turkey_sandwich.jpg',
       tags: ['Protein', 'Carbs'],
     ),
     MealTemplate(
@@ -193,6 +201,7 @@ class NutritionTrackingService {
       carbs: 52,
       protein: 18,
       fat: 16,
+      imagePath: 'assets/images/quinoa_buddha_bowl.jpg',
       tags: ['Vegetables', 'Carbs'],
     ),
     MealTemplate(
@@ -202,6 +211,7 @@ class NutritionTrackingService {
       carbs: 38,
       protein: 32,
       fat: 14,
+      imagePath: 'assets/images/chicken_wrap.jpg',
       tags: ['Protein', 'Carbs'],
     ),
     MealTemplate(
@@ -211,6 +221,7 @@ class NutritionTrackingService {
       carbs: 62,
       protein: 16,
       fat: 16,
+      imagePath: 'assets/images/pasta_primavera.jpg',
       tags: ['Carbs', 'Vegetables'],
     ),
     MealTemplate(
@@ -220,6 +231,7 @@ class NutritionTrackingService {
       carbs: 45,
       protein: 28,
       fat: 10,
+      imagePath: 'assets/images/tuna_poke_bowl.jpg',
       tags: ['Protein', 'Carbs'],
     ),
     
@@ -231,6 +243,7 @@ class NutritionTrackingService {
       carbs: 32,
       protein: 42,
       fat: 24,
+      imagePath: 'assets/images/grilled_salmon_&_veggies.jpg',
       tags: ['Protein', 'Healthy Fats'],
     ),
     MealTemplate(
@@ -240,6 +253,7 @@ class NutritionTrackingService {
       carbs: 48,
       protein: 36,
       fat: 18,
+      imagePath: 'assets/images/beef_stir_fry.jpg',
       tags: ['Protein', 'Vegetables'],
     ),
     MealTemplate(
@@ -249,6 +263,7 @@ class NutritionTrackingService {
       carbs: 58,
       protein: 44,
       fat: 10,
+      imagePath: 'assets/images/chicken_breast_&_rice.jpg',
       tags: ['Protein', 'Carbs'],
     ),
     MealTemplate(
@@ -258,6 +273,7 @@ class NutritionTrackingService {
       carbs: 54,
       protein: 14,
       fat: 18,
+      imagePath: 'assets/images/vegetarian_curry.jpg',
       tags: ['Vegetables', 'Carbs'],
     ),
     MealTemplate(
@@ -267,6 +283,7 @@ class NutritionTrackingService {
       carbs: 45,
       protein: 48,
       fat: 28,
+      imagePath: 'assets/images/grilled_steak_&_potatoes.jpg',
       tags: ['Protein', 'Carbs'],
     ),
     MealTemplate(
@@ -276,6 +293,7 @@ class NutritionTrackingService {
       carbs: 56,
       protein: 32,
       fat: 16,
+      imagePath: 'assets/images/shrimp_pasta.jpg',
       tags: ['Protein', 'Carbs'],
     ),
     
@@ -287,6 +305,7 @@ class NutritionTrackingService {
       carbs: 22,
       protein: 6,
       fat: 8,
+      imagePath: 'assets/images/apple_with_peanut_butter.jpg',
       tags: ['Fruits', 'Protein'],
     ),
     MealTemplate(
@@ -296,6 +315,7 @@ class NutritionTrackingService {
       carbs: 24,
       protein: 20,
       fat: 8,
+      imagePath: 'assets/images/protein_bar.jpg',
       tags: ['Protein'],
     ),
     MealTemplate(
@@ -305,6 +325,7 @@ class NutritionTrackingService {
       carbs: 8,
       protein: 6,
       fat: 14,
+      imagePath: 'assets/images/mixed_nuts.jpg',
       tags: ['Healthy Fats'],
     ),
     MealTemplate(
@@ -314,6 +335,7 @@ class NutritionTrackingService {
       carbs: 32,
       protein: 4,
       fat: 2,
+      imagePath: 'assets/images/fruit_smoothie.jpg',
       tags: ['Fruits'],
     ),
     MealTemplate(
@@ -323,6 +345,7 @@ class NutritionTrackingService {
       carbs: 16,
       protein: 5,
       fat: 4,
+      imagePath: 'assets/images/veggie_sticks_&_hummas.jpg',
       tags: ['Vegetables'],
     ),
     MealTemplate(
@@ -332,6 +355,7 @@ class NutritionTrackingService {
       carbs: 18,
       protein: 8,
       fat: 12,
+      imagePath: 'assets/images/cheese_&_crackers.jpg',
       tags: ['Dairy', 'Carbs'],
     ),
     
@@ -343,6 +367,7 @@ class NutritionTrackingService {
       carbs: 1,
       protein: 0,
       fat: 0,
+      imagePath: 'assets/images/green_tea.jpg',
       tags: ['Healthy'],
     ),
     MealTemplate(
@@ -352,6 +377,7 @@ class NutritionTrackingService {
       carbs: 26,
       protein: 2,
       fat: 0,
+      imagePath: 'assets/images/orange_juice.jpg',
       tags: ['Fruits'],
     ),
     MealTemplate(
@@ -361,6 +387,7 @@ class NutritionTrackingService {
       carbs: 12,
       protein: 25,
       fat: 3,
+      imagePath: 'assets/images/protein_shake.jpg',
       tags: ['Protein'],
     ),
     MealTemplate(
@@ -370,6 +397,7 @@ class NutritionTrackingService {
       carbs: 8,
       protein: 3,
       fat: 2,
+      imagePath: 'assets/images/coffee_with_milk.jpg',
       tags: ['Dairy'],
     ),
   ];

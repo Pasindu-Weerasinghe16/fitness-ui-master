@@ -125,7 +125,8 @@ class PlannedWorkoutDay {
         'workouts': workouts.map((w) => w.toJson()).toList(),
       };
 
-  factory PlannedWorkoutDay.fromJson(Map<String, dynamic> json) => PlannedWorkoutDay(
+  factory PlannedWorkoutDay.fromJson(Map<String, dynamic> json) =>
+      PlannedWorkoutDay(
         date: DateTime.parse(json['date']),
         workouts: (json['workouts'] as List)
             .cast<Map<String, dynamic>>()
@@ -180,8 +181,10 @@ class InsightsService {
           protein: n['protein'] ?? 0,
           fat: n['fat'] ?? 0,
           workouts: completions.length,
-          activeMinutes: completions.fold<int>(0, (s, c) => s + c.durationMinutes),
-          caloriesBurned: completions.fold<int>(0, (s, c) => s + c.caloriesBurned),
+          activeMinutes:
+              completions.fold<int>(0, (s, c) => s + c.durationMinutes),
+          caloriesBurned:
+              completions.fold<int>(0, (s, c) => s + c.caloriesBurned),
         ),
       );
     }
@@ -222,13 +225,14 @@ class InsightsService {
 
     final caloriesIn = history.map((d) => d.caloriesIn.toDouble()).toList();
     final workoutsCount = history.map((d) => d.workouts.toDouble()).toList();
-    final caloriesBurned = history.map((d) => d.caloriesBurned.toDouble()).toList();
+    final caloriesBurned =
+        history.map((d) => d.caloriesBurned.toDouble()).toList();
 
     return TrendPrediction(
       caloriesInNext7Avg: predict(caloriesIn),
       workoutsNext7Avg: predict(workoutsCount),
       caloriesBurnedNext7Avg: predict(caloriesBurned),
-      modelName: 'On-device Trend Model (Linear Regression)',
+      modelName: 'On-device Trend Model',
     );
   }
 
@@ -248,13 +252,15 @@ class InsightsService {
     return prefs.getString(key);
   }
 
-  Future<void> saveWorkoutPlanFocusForWeek(DateTime anyDayInWeek, String focus) async {
+  Future<void> saveWorkoutPlanFocusForWeek(
+      DateTime anyDayInWeek, String focus) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _weekKey(anyDayInWeek, _workoutPlanFocusKeyPrefix);
     await prefs.setString(key, focus);
   }
 
-  Future<List<PlannedMealDay>?> loadMealPlanForWeek(DateTime anyDayInWeek) async {
+  Future<List<PlannedMealDay>?> loadMealPlanForWeek(
+      DateTime anyDayInWeek) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _weekKey(anyDayInWeek, _mealPlanKeyPrefix);
     final raw = prefs.getString(key);
@@ -263,13 +269,16 @@ class InsightsService {
     return list.map((e) => PlannedMealDay.fromJson(e)).toList();
   }
 
-  Future<void> saveMealPlanForWeek(DateTime anyDayInWeek, List<PlannedMealDay> plan) async {
+  Future<void> saveMealPlanForWeek(
+      DateTime anyDayInWeek, List<PlannedMealDay> plan) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _weekKey(anyDayInWeek, _mealPlanKeyPrefix);
-    await prefs.setString(key, jsonEncode(plan.map((d) => d.toJson()).toList()));
+    await prefs.setString(
+        key, jsonEncode(plan.map((d) => d.toJson()).toList()));
   }
 
-  Future<List<PlannedWorkoutDay>?> loadWorkoutPlanForWeek(DateTime anyDayInWeek) async {
+  Future<List<PlannedWorkoutDay>?> loadWorkoutPlanForWeek(
+      DateTime anyDayInWeek) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _weekKey(anyDayInWeek, _workoutPlanKeyPrefix);
     final raw = prefs.getString(key);
@@ -278,13 +287,16 @@ class InsightsService {
     return list.map((e) => PlannedWorkoutDay.fromJson(e)).toList();
   }
 
-  Future<void> saveWorkoutPlanForWeek(DateTime anyDayInWeek, List<PlannedWorkoutDay> plan) async {
+  Future<void> saveWorkoutPlanForWeek(
+      DateTime anyDayInWeek, List<PlannedWorkoutDay> plan) async {
     final prefs = await SharedPreferences.getInstance();
     final key = _weekKey(anyDayInWeek, _workoutPlanKeyPrefix);
-    await prefs.setString(key, jsonEncode(plan.map((d) => d.toJson()).toList()));
+    await prefs.setString(
+        key, jsonEncode(plan.map((d) => d.toJson()).toList()));
   }
 
-  Future<List<PlannedMealDay>> generateMealPlanForWeek({required DateTime anyDayInWeek}) async {
+  Future<List<PlannedMealDay>> generateMealPlanForWeek(
+      {required DateTime anyDayInWeek}) async {
     final goals = await nutrition.getNutritionGoals();
     final dailyCalGoal = goals['calories'] ?? 2145;
 
@@ -296,7 +308,9 @@ class InsightsService {
     final rng = Random(seed);
 
     List<MealTemplate> pick(String category, int count) {
-      final pool = NutritionTrackingService.mealDatabase.where((m) => m.category == category).toList();
+      final pool = NutritionTrackingService.mealDatabase
+          .where((m) => m.category == category)
+          .toList();
       if (pool.isEmpty) return [];
       return List.generate(count, (_) => pool[rng.nextInt(pool.length)]);
     }
@@ -318,7 +332,9 @@ class InsightsService {
       final total = meals.fold<int>(0, (s, m) => s + m.calories);
       final diff = dailyCalGoal - total;
       if (diff.abs() > 250) {
-        final drinks = NutritionTrackingService.mealDatabase.where((m) => m.category == 'Drink').toList();
+        final drinks = NutritionTrackingService.mealDatabase
+            .where((m) => m.category == 'Drink')
+            .toList();
         if (drinks.isNotEmpty) {
           meals.add(drinks[rng.nextInt(drinks.length)]);
         }
@@ -332,16 +348,56 @@ class InsightsService {
   }
 
   static const List<PlannedWorkout> _workoutPool = [
-    PlannedWorkout(title: 'Morning Stretch', difficulty: 'Beginner', durationMinutes: 15, caloriesBurned: 80),
-    PlannedWorkout(title: 'Core Builder', difficulty: 'Beginner', durationMinutes: 20, caloriesBurned: 120),
-    PlannedWorkout(title: 'Cardio Blast', difficulty: 'Intermediate', durationMinutes: 25, caloriesBurned: 220),
-    PlannedWorkout(title: 'HIIT Cardio', difficulty: 'Intermediate', durationMinutes: 20, caloriesBurned: 250),
-    PlannedWorkout(title: 'Strength Circuit', difficulty: 'Intermediate', durationMinutes: 30, caloriesBurned: 280),
-    PlannedWorkout(title: 'Heavy Lifting', difficulty: 'Pro', durationMinutes: 45, caloriesBurned: 420),
-    PlannedWorkout(title: 'Power Endurance', difficulty: 'Pro', durationMinutes: 40, caloriesBurned: 380),
-    PlannedWorkout(title: 'Mobility + Recovery', difficulty: 'Beginner', durationMinutes: 20, caloriesBurned: 70),
-    PlannedWorkout(title: 'Full Body Burn', difficulty: 'Intermediate', durationMinutes: 35, caloriesBurned: 330),
-    PlannedWorkout(title: 'Athlete Conditioning', difficulty: 'Pro', durationMinutes: 50, caloriesBurned: 480),
+    PlannedWorkout(
+        title: 'Morning Stretch',
+        difficulty: 'Beginner',
+        durationMinutes: 15,
+        caloriesBurned: 80),
+    PlannedWorkout(
+        title: 'Core Builder',
+        difficulty: 'Beginner',
+        durationMinutes: 20,
+        caloriesBurned: 120),
+    PlannedWorkout(
+        title: 'Cardio Blast',
+        difficulty: 'Intermediate',
+        durationMinutes: 25,
+        caloriesBurned: 220),
+    PlannedWorkout(
+        title: 'HIIT Cardio',
+        difficulty: 'Intermediate',
+        durationMinutes: 20,
+        caloriesBurned: 250),
+    PlannedWorkout(
+        title: 'Strength Circuit',
+        difficulty: 'Intermediate',
+        durationMinutes: 30,
+        caloriesBurned: 280),
+    PlannedWorkout(
+        title: 'Heavy Lifting',
+        difficulty: 'Pro',
+        durationMinutes: 45,
+        caloriesBurned: 420),
+    PlannedWorkout(
+        title: 'Power Endurance',
+        difficulty: 'Pro',
+        durationMinutes: 40,
+        caloriesBurned: 380),
+    PlannedWorkout(
+        title: 'Mobility + Recovery',
+        difficulty: 'Beginner',
+        durationMinutes: 20,
+        caloriesBurned: 70),
+    PlannedWorkout(
+        title: 'Full Body Burn',
+        difficulty: 'Intermediate',
+        durationMinutes: 35,
+        caloriesBurned: 330),
+    PlannedWorkout(
+        title: 'Athlete Conditioning',
+        difficulty: 'Pro',
+        durationMinutes: 50,
+        caloriesBurned: 480),
   ];
 
   Future<List<PlannedWorkoutDay>> generateWorkoutPlanForWeek({
@@ -384,7 +440,13 @@ class InsightsService {
         final support = _workoutPool.where((w) {
           return titleHas(w, ['mobility', 'stretch']);
         }).toList();
-        return [...preferred, ...preferred, ...preferred, ...support, ..._workoutPool];
+        return [
+          ...preferred,
+          ...preferred,
+          ...preferred,
+          ...support,
+          ..._workoutPool
+        ];
       }
 
       if (focusLabel == workoutFocusEndurance) {
@@ -445,7 +507,13 @@ class InsightsService {
         plan.add(
           PlannedWorkoutDay(
             date: date,
-            workouts: const [PlannedWorkout(title: 'Bodyweight Session', difficulty: 'Balanced', durationMinutes: 30, caloriesBurned: 240)],
+            workouts: const [
+              PlannedWorkout(
+                  title: 'Bodyweight Session',
+                  difficulty: 'Balanced',
+                  durationMinutes: 30,
+                  caloriesBurned: 240)
+            ],
           ),
         );
         continue;
@@ -483,7 +551,8 @@ class InsightsService {
     }
 
     meals ??= await generateMealPlanForWeek(anyDayInWeek: now);
-    workoutPlan ??= await generateWorkoutPlanForWeek(anyDayInWeek: now, focus: resolvedFocus);
+    workoutPlan ??= await generateWorkoutPlanForWeek(
+        anyDayInWeek: now, focus: resolvedFocus);
 
     return WeeklyPlans(meals: meals, workouts: workoutPlan);
   }
