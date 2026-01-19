@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class AppTheme {
   // Light Theme Colors - iOS Fitness Style
@@ -22,9 +23,52 @@ class AppTheme {
   static const _darkTextTertiary = Color(0xFF707070);
 
   static ThemeData get lightTheme {
+    final baseTextTheme = const TextTheme(
+      headlineLarge: TextStyle(
+        fontSize: 34,
+        fontWeight: FontWeight.w700,
+        color: _lightTextPrimary,
+        letterSpacing: 0.4,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        color: _lightTextPrimary,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: _lightTextPrimary,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        color: _lightTextPrimary,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w400,
+        color: _lightTextPrimary,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        color: _lightTextSecondary,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+        color: _lightTextTertiary,
+      ),
+      labelLarge: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        color: _lightPrimary,
+      ),
+    );
+
     return ThemeData(
-      fontFamily: 'Geometria',
-      fontFamilyFallback: const ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Arial'],
+      visualDensity: VisualDensity.adaptivePlatformDensity,
       useMaterial3: true,
       brightness: Brightness.light,
       scaffoldBackgroundColor: _lightBackground,
@@ -44,56 +88,8 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         foregroundColor: _lightTextPrimary,
-        titleTextStyle: TextStyle(
-          fontFamily: 'Geometria',
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: _lightTextPrimary,
-        ),
       ),
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(
-          fontSize: 34,
-          fontWeight: FontWeight.w700,
-          color: _lightTextPrimary,
-          letterSpacing: 0.4,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-          color: _lightTextPrimary,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: _lightTextPrimary,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          color: _lightTextPrimary,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w400,
-          color: _lightTextPrimary,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w400,
-          color: _lightTextSecondary,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w400,
-          color: _lightTextTertiary,
-        ),
-        labelLarge: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: _lightPrimary,
-        ),
-      ),
+      textTheme: GoogleFonts.interTextTheme(baseTextTheme),
       cardTheme: CardThemeData(
         color: _lightCardColor,
         elevation: 0,
@@ -125,9 +121,52 @@ class AppTheme {
   }
 
   static ThemeData get darkTheme {
+    final baseTextTheme = const TextTheme(
+      headlineLarge: TextStyle(
+        fontSize: 34,
+        fontWeight: FontWeight.w700,
+        color: _darkTextPrimary,
+        letterSpacing: 0.4,
+      ),
+      headlineMedium: TextStyle(
+        fontSize: 28,
+        fontWeight: FontWeight.w600,
+        color: _darkTextPrimary,
+      ),
+      titleLarge: TextStyle(
+        fontSize: 22,
+        fontWeight: FontWeight.w600,
+        color: _darkTextPrimary,
+      ),
+      titleMedium: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w600,
+        color: _darkTextPrimary,
+      ),
+      bodyLarge: TextStyle(
+        fontSize: 17,
+        fontWeight: FontWeight.w400,
+        color: _darkTextPrimary,
+      ),
+      bodyMedium: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w400,
+        color: _darkTextSecondary,
+      ),
+      bodySmall: TextStyle(
+        fontSize: 13,
+        fontWeight: FontWeight.w400,
+        color: _darkTextTertiary,
+      ),
+      labelLarge: TextStyle(
+        fontSize: 15,
+        fontWeight: FontWeight.w500,
+        color: _darkPrimary,
+      ),
+    );
+
     return ThemeData(
-      fontFamily: 'Geometria',
-      fontFamilyFallback: const ['-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Arial'],
+      visualDensity: VisualDensity.adaptivePlatformDensity,
       useMaterial3: true,
       brightness: Brightness.dark,
       scaffoldBackgroundColor: _darkBackground,
@@ -147,56 +186,8 @@ class AppTheme {
         elevation: 0,
         centerTitle: true,
         foregroundColor: _darkTextPrimary,
-        titleTextStyle: TextStyle(
-          fontFamily: 'Geometria',
-          fontSize: 20,
-          fontWeight: FontWeight.w600,
-          color: _darkTextPrimary,
-        ),
       ),
-      textTheme: const TextTheme(
-        headlineLarge: TextStyle(
-          fontSize: 34,
-          fontWeight: FontWeight.w700,
-          color: _darkTextPrimary,
-          letterSpacing: 0.4,
-        ),
-        headlineMedium: TextStyle(
-          fontSize: 28,
-          fontWeight: FontWeight.w600,
-          color: _darkTextPrimary,
-        ),
-        titleLarge: TextStyle(
-          fontSize: 22,
-          fontWeight: FontWeight.w600,
-          color: _darkTextPrimary,
-        ),
-        titleMedium: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w600,
-          color: _darkTextPrimary,
-        ),
-        bodyLarge: TextStyle(
-          fontSize: 17,
-          fontWeight: FontWeight.w400,
-          color: _darkTextPrimary,
-        ),
-        bodyMedium: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w400,
-          color: _darkTextSecondary,
-        ),
-        bodySmall: TextStyle(
-          fontSize: 13,
-          fontWeight: FontWeight.w400,
-          color: _darkTextTertiary,
-        ),
-        labelLarge: TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w500,
-          color: _darkPrimary,
-        ),
-      ),
+      textTheme: GoogleFonts.interTextTheme(baseTextTheme),
       cardTheme: CardThemeData(
         color: _darkCardColor,
         elevation: 0,

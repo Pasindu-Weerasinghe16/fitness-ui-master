@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:go_router/go_router.dart';
 import 'package:fitness_flutter/features/articles/data/sample_articles.dart';
 import 'package:fitness_flutter/features/articles/models/article.dart';
-import 'package:fitness_flutter/features/articles/pages/article_detail_page.dart';
-import 'package:fitness_flutter/features/articles/pages/articles_page.dart';
 import 'package:fitness_flutter/features/workouts/models/exercise.dart';
 import 'package:fitness_flutter/features/workouts/pages/activity_detail.dart';
 import 'package:fitness_flutter/features/workouts/pages/workout_detail_page.dart';
@@ -559,12 +558,7 @@ class _ProgramsState extends State<Programs> {
                   ),
                   TextButton(
                     onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => ArticlesPage(articles: articles),
-                        ),
-                      );
+                      context.push('/articles');
                     },
                     child: Text(
                       'See all',
@@ -584,8 +578,8 @@ class _ProgramsState extends State<Programs> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    for (final article in articles.take(5))
-                      _articleCard(theme, article: article),
+                    for (var i = 0; i < (articles.length < 5 ? articles.length : 5); i++)
+                      _articleCard(theme, article: articles[i], index: i),
                   ],
                 ),
               ),
@@ -725,6 +719,7 @@ class _ProgramsState extends State<Programs> {
   Widget _articleCard(
     ThemeData theme, {
     required Article article,
+    required int index,
   }) {
     final readMinutes = _estimateReadMinutes(article.content);
     final category = (article.category ?? '').trim().isEmpty
@@ -733,12 +728,7 @@ class _ProgramsState extends State<Programs> {
 
     return GestureDetector(
       onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ArticleDetailPage(article: article),
-          ),
-        );
+        context.push('/articles/$index');
       },
       child: Container(
         width: 280,
