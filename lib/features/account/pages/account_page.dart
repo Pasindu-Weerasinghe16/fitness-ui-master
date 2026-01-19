@@ -7,6 +7,7 @@ import 'package:fitness_flutter/app/theme/theme_provider.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_in_page.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_up_page.dart';
 import 'package:fitness_flutter/services/user_profile_service.dart';
+import 'package:go_router/go_router.dart';
 
 class AccountPage extends StatelessWidget {
   const AccountPage({super.key});
@@ -432,32 +433,30 @@ class AccountPage extends StatelessWidget {
   }
 
   void _showLogoutDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
+    final parentContext = context;
+
+    showDialog<void>(
+      context: parentContext,
+      builder: (dialogContext) {
         return AlertDialog(
           title: const Text('Logout'),
           content: const Text('Are you sure you want to logout?'),
           actions: [
             TextButton(
-              onPressed: () => Navigator.pop(context),
+              onPressed: () => Navigator.of(dialogContext).pop(),
               child: const Text('Cancel'),
             ),
             TextButton(
               onPressed: () async {
-                Navigator.pop(context);
+                Navigator.of(dialogContext).pop();
 
                 try {
                   await FirebaseAuth.instance.signOut();
-                  if (!context.mounted) return;
-
-                  Navigator.of(context).pushAndRemoveUntil(
-                    MaterialPageRoute(builder: (_) => const SignInPage()),
-                    (route) => false,
-                  );
+                  if (!parentContext.mounted) return;
+                  parentContext.go('/sign-in');
                 } on FirebaseAuthException catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!parentContext.mounted) return;
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
                     SnackBar(
                       content: Text(
                         e.message ?? 'Logout failed. Please try again.',
@@ -465,8 +464,8 @@ class AccountPage extends StatelessWidget {
                     ),
                   );
                 } catch (_) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  if (!parentContext.mounted) return;
+                  ScaffoldMessenger.of(parentContext).showSnackBar(
                     const SnackBar(
                       content: Text('Logout failed. Please try again.'),
                     ),
@@ -474,7 +473,7 @@ class AccountPage extends StatelessWidget {
                 }
               },
               style: TextButton.styleFrom(
-                foregroundColor: Theme.of(context).colorScheme.error,
+                foregroundColor: Theme.of(parentContext).colorScheme.error,
               ),
               child: const Text('Logout'),
             ),
