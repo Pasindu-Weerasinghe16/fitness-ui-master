@@ -11,6 +11,8 @@ class UserProfile {
     this.waistCm,
     this.armsCm,
     this.thighsCm,
+    this.subscriptionPlan,
+    this.language,
     this.createdAt,
     this.updatedAt,
   });
@@ -24,6 +26,8 @@ class UserProfile {
   final num? waistCm;
   final num? armsCm;
   final num? thighsCm;
+  final String? subscriptionPlan;
+  final String? language;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -46,6 +50,8 @@ class UserProfile {
       waistCm: data['waistCm'] as num?,
       armsCm: data['armsCm'] as num?,
       thighsCm: data['thighsCm'] as num?,
+      subscriptionPlan: (data['subscriptionPlan'] as String?)?.trim(),
+      language: (data['language'] as String?)?.trim(),
       createdAt: toDateTime(data['createdAt']),
       updatedAt: toDateTime(data['updatedAt']),
     );
@@ -76,6 +82,8 @@ class UserProfileService {
     num? waistCm,
     num? armsCm,
     num? thighsCm,
+    String? subscriptionPlan,
+    String? language,
   }) async {
     final data = <String, Object?>{
       if (displayName != null) 'displayName': displayName.trim(),
@@ -86,6 +94,8 @@ class UserProfileService {
       if (waistCm != null) 'waistCm': waistCm,
       if (armsCm != null) 'armsCm': armsCm,
       if (thighsCm != null) 'thighsCm': thighsCm,
+      if (subscriptionPlan != null) 'subscriptionPlan': subscriptionPlan.trim(),
+      if (language != null) 'language': language.trim(),
       'updatedAt': FieldValue.serverTimestamp(),
     };
 
