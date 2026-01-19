@@ -4,6 +4,7 @@ import 'dart:math' as math;
 import '../../../services/nutrition_tracking_service.dart';
 import 'meal_selection_page.dart';
 import 'meal_detail_page.dart';
+import '../../../shared/widgets/add_meal_entry_sheet.dart';
 
 class NutritionPage extends StatefulWidget {
   const NutritionPage({super.key});
@@ -535,12 +536,44 @@ class _NutritionPageState extends State<NutritionPage> {
               _mealTypeTile(theme, title: 'Dinner', icon: Icons.dinner_dining, onTap: () => _openFromPicker('Dinner')),
               _mealTypeTile(theme, title: 'Snack', icon: Icons.cookie, onTap: () => _openFromPicker('Snack')),
               _mealTypeTile(theme, title: 'Drink', icon: Icons.local_cafe, onTap: () => _openFromPicker('Drink')),
+              const Divider(),
+              _mealTypeTile(
+                theme,
+                title: 'Create custom meal',
+                icon: Icons.edit_note,
+                onTap: _openCreateMeal,
+              ),
               const SizedBox(height: 6),
             ],
           ),
         );
       },
     );
+  }
+
+  Future<void> _openCreateMeal() async {
+    Navigator.pop(context);
+
+    final initialType = _mealFilter != 'All' ? _mealFilter : 'Lunch';
+    final added = await AddMealEntrySheet.show(
+      context,
+      service: _nutritionService,
+      date: _selectedDate,
+      initialMealType: initialType,
+    );
+
+    if (!mounted) return;
+    if (added != null) {
+      await _loadNutritionData();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('${added.name} added to ${added.mealType}'),
+          backgroundColor: Theme.of(context).colorScheme.primary,
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        ),
+      );
+    }
   }
 
   Widget _mealTypeTile(ThemeData theme, {required String title, required IconData icon, required VoidCallback onTap}) {

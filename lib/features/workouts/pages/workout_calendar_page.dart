@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:table_calendar/table_calendar.dart';
 import 'package:fitness_flutter/services/workout_tracking_service.dart';
+import 'package:fitness_flutter/shared/widgets/log_workout_sheet.dart';
 
 class WorkoutCalendarPage extends StatefulWidget {
   const WorkoutCalendarPage({super.key});
@@ -50,6 +51,22 @@ class _WorkoutCalendarPageState extends State<WorkoutCalendarPage> {
         title: const Text('Workout Calendar'),
         backgroundColor: theme.scaffoldBackgroundColor,
         elevation: 0,
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () async {
+          final day = _selectedDay ?? DateTime.now();
+          final added = await LogWorkoutSheet.show(
+            context,
+            service: _trackingService,
+            date: day,
+          );
+          if (!mounted) return;
+          if (added != null) {
+            await _loadCompletions();
+          }
+        },
+        icon: const Icon(Icons.add),
+        label: const Text('Log workout'),
       ),
       body: Column(
         children: [
