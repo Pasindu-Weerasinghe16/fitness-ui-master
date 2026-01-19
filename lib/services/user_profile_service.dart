@@ -7,6 +7,10 @@ class UserProfile {
     this.email,
     this.heightCm,
     this.weightKg,
+    this.chestCm,
+    this.waistCm,
+    this.armsCm,
+    this.thighsCm,
     this.createdAt,
     this.updatedAt,
   });
@@ -16,6 +20,10 @@ class UserProfile {
   final String? email;
   final num? heightCm;
   final num? weightKg;
+  final num? chestCm;
+  final num? waistCm;
+  final num? armsCm;
+  final num? thighsCm;
   final DateTime? createdAt;
   final DateTime? updatedAt;
 
@@ -34,6 +42,10 @@ class UserProfile {
       email: (data['email'] as String?)?.trim(),
       heightCm: data['heightCm'] as num?,
       weightKg: data['weightKg'] as num?,
+      chestCm: data['chestCm'] as num?,
+      waistCm: data['waistCm'] as num?,
+      armsCm: data['armsCm'] as num?,
+      thighsCm: data['thighsCm'] as num?,
       createdAt: toDateTime(data['createdAt']),
       updatedAt: toDateTime(data['updatedAt']),
     );
@@ -60,12 +72,20 @@ class UserProfileService {
     String? email,
     num? heightCm,
     num? weightKg,
+    num? chestCm,
+    num? waistCm,
+    num? armsCm,
+    num? thighsCm,
   }) async {
     final data = <String, Object?>{
       if (displayName != null) 'displayName': displayName.trim(),
       if (email != null) 'email': email.trim(),
       if (heightCm != null) 'heightCm': heightCm,
       if (weightKg != null) 'weightKg': weightKg,
+      if (chestCm != null) 'chestCm': chestCm,
+      if (waistCm != null) 'waistCm': waistCm,
+      if (armsCm != null) 'armsCm': armsCm,
+      if (thighsCm != null) 'thighsCm': thighsCm,
       'updatedAt': FieldValue.serverTimestamp(),
     };
 

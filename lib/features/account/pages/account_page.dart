@@ -116,6 +116,16 @@ class AccountPage extends StatelessWidget {
                                 if (height != null) items.add('Height: ${height.toString()} cm');
                                 if (weight != null) items.add('Weight: ${weight.toString()} kg');
 
+                                if (height != null && weight != null) {
+                                  final hMeters = height.toDouble() / 100.0;
+                                  if (hMeters > 0) {
+                                    final bmi = weight.toDouble() / (hMeters * hMeters);
+                                    if (bmi.isFinite) {
+                                      items.add('BMI: ${bmi.toStringAsFixed(1)}');
+                                    }
+                                  }
+                                }
+
                                 if (items.isEmpty) {
                                   return Text(
                                     'Add your height & weight',
