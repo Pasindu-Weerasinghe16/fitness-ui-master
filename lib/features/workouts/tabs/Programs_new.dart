@@ -5,6 +5,7 @@ import 'package:fitness_flutter/features/articles/data/sample_articles.dart';
 import 'package:fitness_flutter/features/articles/models/article.dart';
 import 'package:fitness_flutter/features/workouts/models/exercise.dart';
 import 'package:fitness_flutter/features/workouts/pages/activity_detail.dart';
+import 'package:fitness_flutter/features/workouts/pages/daily_activity_page.dart';
 import 'package:fitness_flutter/features/workouts/pages/workout_detail_page.dart';
 import 'package:fitness_flutter/features/workouts/pages/workout_calendar_page.dart';
 import 'package:fitness_flutter/shared/widgets/circular_progress_card.dart';
@@ -333,69 +334,84 @@ class _ProgramsState extends State<Programs> {
               const SizedBox(height: 20),
 
               // Daily Activity Card
-              Container(
-                width: double.infinity,
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.colorScheme.surface,
-                  borderRadius: BorderRadius.circular(24),
-                  border: Border.all(
-                    color: _hairlineBorder(theme),
+              InkWell(
+                onTap: () {
+                  context.push(
+                    '/daily-activity',
+                    extra: DailyActivityArgs(
+                      activeMinutes: _activeMinutes,
+                      calories: _todayCalories,
+                      weeklyWorkouts: _weeklyWorkouts,
+                      currentStreak: _currentStreak,
+                      bestStreak: _bestStreak,
+                    ),
+                  );
+                },
+                borderRadius: BorderRadius.circular(24),
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: theme.colorScheme.surface,
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: _hairlineBorder(theme),
+                    ),
+                    boxShadow: [_softShadow(isDark)],
                   ),
-                  boxShadow: [_softShadow(isDark)],
-                ),
-                child: Row(
-                  children: [
-                    Container(
-                      width: 46,
-                      height: 46,
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(isDark ? 0.22 : 0.12),
-                        shape: BoxShape.circle,
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 46,
+                        height: 46,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(isDark ? 0.22 : 0.12),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.insights,
+                          color: theme.colorScheme.primary,
+                          size: 22,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.insights,
-                        color: theme.colorScheme.primary,
-                        size: 22,
-                      ),
-                    ),
-                    const SizedBox(width: 14),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'VIEW YOUR DAILY ACTIVITY',
-                            style: theme.textTheme.labelLarge?.copyWith(
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
+                      const SizedBox(width: 14),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'VIEW YOUR DAILY ACTIVITY',
+                              style: theme.textTheme.labelLarge?.copyWith(
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 0.5,
+                              ),
                             ),
-                          ),
-                          const SizedBox(height: 8),
-                          Text(
-                            'See how active your body has been today and how it aligns with your wellness goals',
-                            style: theme.textTheme.bodySmall?.copyWith(
-                              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
-                              height: 1.25,
+                            const SizedBox(height: 8),
+                            Text(
+                              'See how active your body has been today and how it aligns with your wellness goals',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                                height: 1.25,
+                              ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: theme.colorScheme.primary.withOpacity(isDark ? 0.22 : 0.10),
-                        shape: BoxShape.circle,
+                      const SizedBox(width: 12),
+                      Container(
+                        padding: const EdgeInsets.all(12),
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.primary.withOpacity(isDark ? 0.22 : 0.10),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          Icons.arrow_forward,
+                          color: theme.colorScheme.primary,
+                          size: 24,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.arrow_forward,
-                        color: theme.colorScheme.primary,
-                        size: 24,
-                      ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
 

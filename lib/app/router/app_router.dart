@@ -10,6 +10,7 @@ import 'package:fitness_flutter/features/articles/pages/article_detail_page.dart
 import 'package:fitness_flutter/features/articles/pages/articles_page.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_in_page.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_up_page.dart';
+import 'package:fitness_flutter/features/workouts/pages/daily_activity_page.dart';
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -83,6 +84,26 @@ class AppRouter {
             },
           ),
         ],
+      ),
+      GoRoute(
+        path: '/daily-activity',
+        pageBuilder: (context, state) {
+          final extra = state.extra;
+          final args = extra is DailyActivityArgs
+              ? extra
+              : const DailyActivityArgs(
+                  activeMinutes: 0,
+                  calories: 0,
+                  weeklyWorkouts: 0,
+                  currentStreak: 0,
+                  bestStreak: 0,
+                );
+
+          return _fadeThroughPage(
+            key: state.pageKey,
+            child: DailyActivityPage(args: args),
+          );
+        },
       ),
       GoRoute(
         path: '/',
