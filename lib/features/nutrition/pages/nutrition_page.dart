@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'dart:math' as math;
 import '../../../services/nutrition_tracking_service.dart';
 import 'meal_selection_page.dart';
 import 'meal_detail_page.dart';
@@ -276,86 +277,17 @@ class _NutritionPageState extends State<NutritionPage> {
               const SizedBox(height: 24),
 
               // Calorie Progress Ring
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Today calorie',
-                      style: theme.textTheme.bodyMedium,
-                    ),
-                    const SizedBox(height: 20),
-                    Center(
-                      child: SizedBox(
-                        width: 160,
-                        height: 160,
-                        child: Stack(
-                          alignment: Alignment.center,
-                          children: [
-                            SizedBox(
-                              width: 160,
-                              height: 160,
-                              child: CircularProgressIndicator(
-                                value: currentCalories / calorieGoal,
-                                strokeWidth: 12,
-                                backgroundColor: theme.colorScheme.primary.withOpacity(0.1),
-                                valueColor: AlwaysStoppedAnimation(theme.colorScheme.primary),
-                              ),
-                            ),
-                            Column(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Text(
-                                  '$currentCalories',
-                                  style: theme.textTheme.headlineLarge?.copyWith(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 40,
-                                  ),
-                                ),
-                                Text(
-                                  'kcal',
-                                  style: theme.textTheme.bodyMedium,
-                                ),
-                              ],
-                            ),
-                            Positioned(
-                              right: 10,
-                              top: 10,
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                decoration: BoxDecoration(
-                                  color: theme.colorScheme.primary.withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Text(
-                                    '${caloriesLeft < 0 ? 0 : caloriesLeft}\nleft',
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 10,
-                                    color: theme.colorScheme.primary,
-                                    fontWeight: FontWeight.w600,
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+              _todayCaloriesMacroCard(
+                theme,
+                calorieGoal: calorieGoal,
+                currentCalories: currentCalories,
+                caloriesLeft: caloriesLeft,
+                carbsCurrent: carbsCurrent,
+                carbsGoal: carbsGoal,
+                proteinCurrent: proteinCurrent,
+                proteinGoal: proteinGoal,
+                fatCurrent: fatCurrent,
+                fatGoal: fatGoal,
               ),
 
               const SizedBox(height: 20),
@@ -897,5 +829,321 @@ class _NutritionPageState extends State<NutritionPage> {
     );
   }
 
+  Widget _todayCaloriesMacroCard(
+    ThemeData theme, {
+    required int calorieGoal,
+    required int currentCalories,
+    required int caloriesLeft,
+    required int carbsCurrent,
+    required int carbsGoal,
+    required int proteinCurrent,
+    required int proteinGoal,
+    required int fatCurrent,
+    required int fatGoal,
+  }) {
+    final isDark = theme.brightness == Brightness.dark;
+    final borderColor = isDark ? Colors.white.withOpacity(0.10) : const Color(0xFFE9ECF3);
+    final trackColor = isDark ? Colors.white.withOpacity(0.12) : const Color(0xFFE6EAF3);
+    final dotColor = isDark ? Colors.white.withOpacity(0.16) : const Color(0xFFD7DCE9);
+
+    final safeCalorieGoal = calorieGoal <= 0 ? 1 : calorieGoal;
+    final caloriesProgress = (currentCalories / safeCalorieGoal).clamp(0.0, 1.0);
+
+    final safeCarbsGoal = carbsGoal <= 0 ? 1 : carbsGoal;
+    final safeProteinGoal = proteinGoal <= 0 ? 1 : proteinGoal;
+    final safeFatGoal = fatGoal <= 0 ? 1 : fatGoal;
+
+    final carbsProgress = (carbsCurrent / safeCarbsGoal).clamp(0.0, 1.0);
+    final proteinProgress = (proteinCurrent / safeProteinGoal).clamp(0.0, 1.0);
+    final fatProgress = (fatCurrent / safeFatGoal).clamp(0.0, 1.0);
+
+    const carbsColor = Color(0xFFFFA500);
+    const proteinColor = Color(0xFF9ACD32);
+    final fatColor = theme.colorScheme.primary;
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(18, 16, 18, 18),
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: borderColor),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black.withOpacity(0.24) : Colors.black.withOpacity(0.06),
+            blurRadius: 16,
+            offset: const Offset(0, 8),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Expanded(
+                child: Text(
+                  'Today calories',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                decoration: BoxDecoration(
+                  color: isDark ? Colors.white.withOpacity(0.06) : const Color(0xFFF1F2F7),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(color: borderColor),
+                ),
+                child: Text(
+                  '${caloriesLeft < 0 ? 0 : caloriesLeft} left',
+                  style: theme.textTheme.labelLarge?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: theme.colorScheme.primary,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Center(
+            child: SizedBox(
+              width: 250,
+              height: 250,
+              child: CustomPaint(
+                painter: _TripleMacroRingPainter(
+                  dotColor: dotColor,
+                  trackColor: trackColor,
+                  caloriesProgress: caloriesProgress,
+                  caloriesColor: theme.colorScheme.primary,
+                  carbsProgress: carbsProgress,
+                  carbsColor: carbsColor,
+                  proteinProgress: proteinProgress,
+                  proteinColor: proteinColor,
+                  fatProgress: fatProgress,
+                  fatColor: fatColor,
+                ),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 54,
+                        height: 54,
+                        decoration: BoxDecoration(
+                          color: theme.colorScheme.surface,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: borderColor),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(isDark ? 0.18 : 0.06),
+                              blurRadius: 12,
+                              offset: const Offset(0, 6),
+                            ),
+                          ],
+                        ),
+                        child: Icon(Icons.local_fire_department, color: theme.colorScheme.primary, size: 26),
+                      ),
+                      const SizedBox(height: 10),
+                      Text(
+                        'CALORIES',
+                        style: theme.textTheme.labelLarge?.copyWith(
+                          letterSpacing: 1.0,
+                          fontWeight: FontWeight.w800,
+                          color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        '$currentCalories',
+                        style: theme.textTheme.displaySmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          height: 1.0,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        'kcal',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      const SizedBox(height: 6),
+                      Text(
+                        'Goal $safeCalorieGoal',
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.primary,
+                          fontWeight: FontWeight.w800,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 10),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              _MacroLegendItem(
+                color: carbsColor,
+                label: 'Carbs',
+                value: '$carbsCurrent/$safeCarbsGoal g',
+              ),
+              _MacroLegendItem(
+                color: proteinColor,
+                label: 'Protein',
+                value: '$proteinCurrent/$safeProteinGoal g',
+              ),
+              _MacroLegendItem(
+                color: fatColor,
+                label: 'Fat',
+                value: '$fatCurrent/$safeFatGoal g',
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   // legacy placeholder widgets removed; UI is now driven by saved meals and goals.
+}
+
+class _MacroLegendItem extends StatelessWidget {
+  final Color color;
+  final String label;
+  final String value;
+
+  const _MacroLegendItem({
+    required this.color,
+    required this.label,
+    required this.value,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 10,
+              height: 10,
+              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.w800),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: theme.textTheme.bodySmall?.copyWith(
+            fontWeight: FontWeight.w700,
+            color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _TripleMacroRingPainter extends CustomPainter {
+  final Color dotColor;
+  final Color trackColor;
+
+  final double caloriesProgress;
+  final Color caloriesColor;
+
+  final double carbsProgress;
+  final Color carbsColor;
+
+  final double proteinProgress;
+  final Color proteinColor;
+
+  final double fatProgress;
+  final Color fatColor;
+
+  _TripleMacroRingPainter({
+    required this.dotColor,
+    required this.trackColor,
+    required this.caloriesProgress,
+    required this.caloriesColor,
+    required this.carbsProgress,
+    required this.carbsColor,
+    required this.proteinProgress,
+    required this.proteinColor,
+    required this.fatProgress,
+    required this.fatColor,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final outerRadius = math.min(size.width, size.height) / 2 - 12;
+
+    // Outer dotted ring
+    final dotCount = 64;
+    final dotRadius = outerRadius + 10;
+    final dotPaint = Paint()..color = dotColor;
+    for (var i = 0; i < dotCount; i++) {
+      final t = (2 * math.pi * i) / dotCount;
+      final p = Offset(
+        center.dx + dotRadius * math.cos(t),
+        center.dy + dotRadius * math.sin(t),
+      );
+      canvas.drawCircle(p, 1.7, dotPaint);
+    }
+
+    final startAngle = math.pi * 0.85;
+    final totalSweep = math.pi * 1.30;
+    const stroke = 14.0;
+    const gap = 10.0;
+
+    void ring(double radius, double progress, Color color) {
+      final rect = Rect.fromCircle(center: center, radius: radius);
+
+      final trackPaint = Paint()
+        ..color = trackColor
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawArc(rect, startAngle, totalSweep, false, trackPaint);
+
+      final progPaint = Paint()
+        ..shader = LinearGradient(
+          colors: [color.withOpacity(0.95), color.withOpacity(0.55)],
+          begin: Alignment.centerLeft,
+          end: Alignment.centerRight,
+        ).createShader(rect)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = stroke
+        ..strokeCap = StrokeCap.round;
+      canvas.drawArc(rect, startAngle, totalSweep * progress, false, progPaint);
+    }
+
+    ring(outerRadius, caloriesProgress, caloriesColor);
+    ring(outerRadius - (stroke + gap), carbsProgress, carbsColor);
+    ring(outerRadius - 2 * (stroke + gap), proteinProgress, proteinColor);
+    ring(outerRadius - 3 * (stroke + gap), fatProgress, fatColor);
+  }
+
+  @override
+  bool shouldRepaint(_TripleMacroRingPainter oldDelegate) {
+    return oldDelegate.caloriesProgress != caloriesProgress ||
+        oldDelegate.carbsProgress != carbsProgress ||
+        oldDelegate.proteinProgress != proteinProgress ||
+        oldDelegate.fatProgress != fatProgress ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.dotColor != dotColor;
+  }
 }

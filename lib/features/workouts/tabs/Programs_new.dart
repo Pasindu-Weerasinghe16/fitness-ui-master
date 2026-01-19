@@ -201,13 +201,14 @@ class _ProgramsState extends State<Programs> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final articles = kSampleArticles;
 
     return Scaffold(
-      backgroundColor: theme.scaffoldBackgroundColor,
+      backgroundColor: _pageBackground(theme),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(20),
+          padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -220,7 +221,10 @@ class _ProgramsState extends State<Programs> {
                     children: [
                       Text(
                         DateTime.now().toString().substring(0, 10).replaceAll('-', ', '),
-                        style: theme.textTheme.bodySmall,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                       const SizedBox(height: 4),
                       Text(
@@ -233,8 +237,9 @@ class _ProgramsState extends State<Programs> {
                   ),
                   Row(
                     children: [
-                      IconButton(
-                        icon: const Icon(Icons.calendar_today),
+                      _circleAction(
+                        theme,
+                        icon: Icons.calendar_today,
                         onPressed: () {
                           Navigator.push(
                             context,
@@ -244,8 +249,10 @@ class _ProgramsState extends State<Programs> {
                           ).then((_) => _loadStats());
                         },
                       ),
-                      IconButton(
-                        icon: const Icon(Icons.notifications_outlined),
+                      const SizedBox(width: 10),
+                      _circleAction(
+                        theme,
+                        icon: Icons.notifications_outlined,
                         onPressed: () {},
                       ),
                     ],
@@ -330,25 +337,29 @@ class _ProgramsState extends State<Programs> {
                 width: double.infinity,
                 padding: const EdgeInsets.all(20),
                 decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    colors: [
-                      theme.colorScheme.secondary,
-                      theme.colorScheme.secondary.withOpacity(0.8),
-                    ],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
+                  color: theme.colorScheme.surface,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: _hairlineBorder(theme),
                   ),
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: theme.colorScheme.secondary.withOpacity(0.3),
-                      blurRadius: 12,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  boxShadow: [_softShadow(isDark)],
                 ),
                 child: Row(
                   children: [
+                    Container(
+                      width: 46,
+                      height: 46,
+                      decoration: BoxDecoration(
+                        color: theme.colorScheme.primary.withOpacity(isDark ? 0.22 : 0.12),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        Icons.insights,
+                        color: theme.colorScheme.primary,
+                        size: 22,
+                      ),
+                    ),
+                    const SizedBox(width: 14),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -356,7 +367,6 @@ class _ProgramsState extends State<Programs> {
                           Text(
                             'VIEW YOUR DAILY ACTIVITY',
                             style: theme.textTheme.labelLarge?.copyWith(
-                              color: Colors.white,
                               fontWeight: FontWeight.w700,
                               letterSpacing: 0.5,
                             ),
@@ -365,7 +375,8 @@ class _ProgramsState extends State<Programs> {
                           Text(
                             'See how active your body has been today and how it aligns with your wellness goals',
                             style: theme.textTheme.bodySmall?.copyWith(
-                              color: Colors.white.withOpacity(0.9),
+                              color: theme.textTheme.bodySmall?.color?.withOpacity(0.7),
+                              height: 1.25,
                             ),
                           ),
                         ],
@@ -375,12 +386,12 @@ class _ProgramsState extends State<Programs> {
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
-                        color: Colors.white.withOpacity(0.2),
+                        color: theme.colorScheme.primary.withOpacity(isDark ? 0.22 : 0.10),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(
+                      child: Icon(
                         Icons.arrow_forward,
-                        color: Colors.white,
+                        color: theme.colorScheme.primary,
                         size: 24,
                       ),
                     ),
@@ -616,21 +627,21 @@ class _ProgramsState extends State<Programs> {
                 end: Alignment.bottomRight,
               )
             : null,
-        color: isUnlocked ? null : theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
+        color: isUnlocked ? null : theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(24),
         border: !isUnlocked
             ? Border.all(
-                color: theme.dividerColor,
-                width: 2,
+                color: _hairlineBorder(theme),
+                width: 1,
               )
             : null,
         boxShadow: [
           BoxShadow(
             color: isUnlocked
                 ? theme.colorScheme.primary.withOpacity(0.3)
-                : Colors.black.withOpacity(0.04),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+                : Colors.black.withOpacity(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -735,8 +746,11 @@ class _ProgramsState extends State<Programs> {
         height: 220,
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(20),
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: _hairlineBorder(theme),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.06),
@@ -752,11 +766,11 @@ class _ProgramsState extends State<Programs> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
+                    top: Radius.circular(24),
                   ),
                   child: Image.asset(
                     article.image,
-                    height: 112,
+                    height: 118,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -770,13 +784,16 @@ class _ProgramsState extends State<Programs> {
                       vertical: 6,
                     ),
                     decoration: BoxDecoration(
-                      color: theme.colorScheme.primary,
+                      color: Colors.white.withOpacity(0.92),
                       borderRadius: BorderRadius.circular(20),
+                      border: Border.all(
+                        color: Colors.black.withOpacity(0.06),
+                      ),
                     ),
                     child: Text(
                       category,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: theme.colorScheme.primary,
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
                       ),
@@ -867,10 +884,10 @@ class _ProgramsState extends State<Programs> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? theme.colorScheme.primary : theme.cardColor,
-          borderRadius: BorderRadius.circular(20),
+          color: isSelected ? theme.colorScheme.primary : theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(999),
           border: Border.all(
-            color: isSelected ? theme.colorScheme.primary : theme.dividerColor,
+            color: isSelected ? theme.colorScheme.primary : _hairlineBorder(theme),
             width: isSelected ? 0 : 1,
           ),
           boxShadow: isSelected
@@ -891,6 +908,53 @@ class _ProgramsState extends State<Programs> {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _circleAction(
+    ThemeData theme, {
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        color: theme.colorScheme.surface,
+        shape: BoxShape.circle,
+        border: Border.all(
+          color: _hairlineBorder(theme),
+        ),
+        boxShadow: [_softShadow(isDark)],
+      ),
+      child: IconButton(
+        icon: Icon(icon),
+        onPressed: onPressed,
+        splashRadius: 22,
+        visualDensity: VisualDensity.compact,
+      ),
+    );
+  }
+
+  Color _pageBackground(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return theme.scaffoldBackgroundColor;
+    }
+    return const Color(0xFFF6F7FB);
+  }
+
+  Color _hairlineBorder(ThemeData theme) {
+    if (theme.brightness == Brightness.dark) {
+      return Colors.white.withOpacity(0.10);
+    }
+    return const Color(0xFFE9ECF3);
+  }
+
+  BoxShadow _softShadow(bool isDark) {
+    return BoxShadow(
+      color: isDark ? Colors.black.withOpacity(0.24) : Colors.black.withOpacity(0.06),
+      blurRadius: 16,
+      offset: const Offset(0, 8),
     );
   }
 
@@ -939,8 +1003,11 @@ class _ProgramsState extends State<Programs> {
         width: 170,
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: BorderRadius.circular(20),
+          color: theme.colorScheme.surface,
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: _hairlineBorder(theme),
+          ),
           boxShadow: [
             BoxShadow(
               color: Colors.black.withOpacity(0.06),
@@ -956,11 +1023,11 @@ class _ProgramsState extends State<Programs> {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(
-                    top: Radius.circular(20),
+                    top: Radius.circular(24),
                   ),
                   child: Image.asset(
                     image,
-                    height: 120,
+                    height: 112,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -971,13 +1038,16 @@ class _ProgramsState extends State<Programs> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                     decoration: BoxDecoration(
-                      color: _getDifficultyColor(difficulty),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withOpacity(0.92),
+                      borderRadius: BorderRadius.circular(999),
+                      border: Border.all(
+                        color: Colors.black.withOpacity(0.06),
+                      ),
                     ),
                     child: Text(
                       difficulty,
-                      style: const TextStyle(
-                        color: Colors.white,
+                      style: TextStyle(
+                        color: _getDifficultyColor(difficulty),
                         fontSize: 10,
                         fontWeight: FontWeight.w700,
                       ),
@@ -990,53 +1060,73 @@ class _ProgramsState extends State<Programs> {
                   child: Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.3),
+                      color: Colors.white.withOpacity(0.92),
                       shape: BoxShape.circle,
+                      border: Border.all(
+                        color: Colors.black.withOpacity(0.06),
+                      ),
                     ),
                     child: const Icon(
                       Icons.play_arrow,
-                      color: Colors.white,
+                      color: Colors.black87,
                       size: 20,
                     ),
                   ),
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: theme.textTheme.bodySmall?.color,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        duration,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                      const Spacer(),
-                      Text(
-                        calories,
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.colorScheme.primary,
-                          fontWeight: FontWeight.w600,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(12, 8, 12, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Align(
+                        alignment: Alignment.topLeft,
+                        child: Text(
+                          title,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            height: 1.1,
+                          ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.access_time,
+                          size: 14,
+                          color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                        ),
+                        const SizedBox(width: 4),
+                        Expanded(
+                          child: Text(
+                            duration,
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color?.withOpacity(0.75),
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          calories,
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.colorScheme.primary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -1056,13 +1146,16 @@ class _ProgramsState extends State<Programs> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(16),
+        color: theme.colorScheme.surface,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: _hairlineBorder(theme),
+        ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.04),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 14,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
@@ -1075,7 +1168,7 @@ class _ProgramsState extends State<Programs> {
                 padding: const EdgeInsets.all(8),
                 decoration: BoxDecoration(
                   color: color.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(icon, color: color, size: 20),
               ),
