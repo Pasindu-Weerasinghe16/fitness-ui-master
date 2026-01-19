@@ -1,5 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:fitness_flutter/features/articles/data/sample_articles.dart';
+import 'package:fitness_flutter/features/articles/models/article.dart';
+import 'package:fitness_flutter/features/articles/pages/article_detail_page.dart';
+import 'package:fitness_flutter/features/articles/pages/articles_page.dart';
 import 'package:fitness_flutter/features/workouts/models/exercise.dart';
 import 'package:fitness_flutter/features/workouts/pages/activity_detail.dart';
 import 'package:fitness_flutter/features/workouts/pages/workout_detail_page.dart';
@@ -38,7 +42,8 @@ class _ProgramsState extends State<Programs> {
     final weeklyWorkouts = await _trackingService.getWeeklyWorkoutCount();
     final activeMinutes = await _trackingService.getTodayActiveMinutes();
     final todayCalories = await _trackingService.getTodayCalories();
-    
+    if (!mounted) return;
+
     setState(() {
       _currentStreak = currentStreak;
       _bestStreak = bestStreak;
@@ -197,6 +202,7 @@ class _ProgramsState extends State<Programs> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final articles = kSampleArticles;
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
@@ -552,7 +558,14 @@ class _ProgramsState extends State<Programs> {
                     ),
                   ),
                   TextButton(
-                    onPressed: () {},
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (_) => ArticlesPage(articles: articles),
+                        ),
+                      );
+                    },
                     child: Text(
                       'See all',
                       style: TextStyle(
@@ -571,41 +584,8 @@ class _ProgramsState extends State<Programs> {
                 child: ListView(
                   scrollDirection: Axis.horizontal,
                   children: [
-                    _articleCard(
-                      theme,
-                      image: 'assets/images/image001.jpg',
-                      category: 'Nutrition',
-                      title: 'Pre-Workout Nutrition Guide',
-                      readTime: '5 min read',
-                    ),
-                    _articleCard(
-                      theme,
-                      image: 'assets/images/image002.jpg',
-                      category: 'Training',
-                      title: 'How to Build Muscle Effectively',
-                      readTime: '8 min read',
-                    ),
-                    _articleCard(
-                      theme,
-                      image: 'assets/images/image003.jpg',
-                      category: 'Recovery',
-                      title: 'The Importance of Rest Days',
-                      readTime: '6 min read',
-                    ),
-                    _articleCard(
-                      theme,
-                      image: 'assets/images/image004.jpg',
-                      category: 'Motivation',
-                      title: 'Stay Consistent: 7 Tips',
-                      readTime: '4 min read',
-                    ),
-                    _articleCard(
-                      theme,
-                      image: 'assets/images/image005.jpg',
-                      category: 'Wellness',
-                      title: 'Sleep & Fitness Performance',
-                      readTime: '7 min read',
-                    ),
+                    for (final article in articles.take(5))
+                      _articleCard(theme, article: article),
                   ],
                 ),
               ),
@@ -744,17 +724,25 @@ class _ProgramsState extends State<Programs> {
 
   Widget _articleCard(
     ThemeData theme, {
-    required String image,
-    required String category,
-    required String title,
-    required String readTime,
+    required Article article,
   }) {
+    final readMinutes = _estimateReadMinutes(article.content);
+    final category = (article.category ?? '').trim().isEmpty
+        ? 'Fitness'
+        : article.category!.trim();
+
     return GestureDetector(
       onTap: () {
-        // Navigate to article detail
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ArticleDetailPage(article: article),
+          ),
+        );
       },
       child: Container(
         width: 280,
+        height: 220,
         margin: const EdgeInsets.only(right: 16),
         decoration: BoxDecoration(
           color: theme.cardColor,
@@ -777,8 +765,8 @@ class _ProgramsState extends State<Programs> {
                     top: Radius.circular(20),
                   ),
                   child: Image.asset(
-                    image,
-                    height: 120,
+                    article.image,
+                    height: 112,
                     width: double.infinity,
                     fit: BoxFit.cover,
                   ),
@@ -787,7 +775,10 @@ class _ProgramsState extends State<Programs> {
                   top: 12,
                   left: 12,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: theme.colorScheme.primary,
                       borderRadius: BorderRadius.circular(20),
@@ -804,42 +795,73 @@ class _ProgramsState extends State<Programs> {
                 ),
               ],
             ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      article.title,
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 15,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 6),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: theme.textTheme.bodySmall?.color,
+                    const SizedBox(height: 4),
+                    Expanded(
+                      child: Text(
+                        article.subtitle,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withOpacity(0.8),
+                          height: 1.25,
+                        ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
                       ),
-                      const SizedBox(width: 4),
-                      Text(
-                        readTime,
-                        style: theme.textTheme.bodySmall,
-                      ),
-                    ],
-                  ),
-                ],
+                    ),
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        Icon(
+                          Icons.schedule,
+                          size: 14,
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withOpacity(0.7),
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          '$readMinutes min read',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            color: theme.textTheme.bodySmall?.color
+                                ?.withOpacity(0.7),
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
         ),
       ),
     );
+  }
+
+  int _estimateReadMinutes(String text) {
+    final wordCount = text
+        .replaceAll(RegExp(r'\s+'), ' ')
+        .trim()
+        .split(' ')
+        .where((w) => w.isNotEmpty)
+        .length;
+    final minutes = (wordCount / 200).ceil();
+    return minutes < 1 ? 1 : minutes;
   }
 
   Widget _difficultyChip(BuildContext context, String label) {

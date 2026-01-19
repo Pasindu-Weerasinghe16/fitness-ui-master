@@ -31,13 +31,21 @@ class _NutritionPageState extends State<NutritionPage> {
   }
 
   Future<void> _loadNutritionData() async {
-    setState(() => _isLoading = true);
+    if (mounted) {
+      setState(() => _isLoading = true);
+    }
 
-    nutritionGoals = await _nutritionService.getNutritionGoals();
-    currentNutrition = await _nutritionService.getNutritionForDate(_selectedDate);
-    todayMeals = await _nutritionService.getMealsForDate(_selectedDate);
+    final goals = await _nutritionService.getNutritionGoals();
+    final nutrition = await _nutritionService.getNutritionForDate(_selectedDate);
+    final meals = await _nutritionService.getMealsForDate(_selectedDate);
 
-    setState(() => _isLoading = false);
+    if (!mounted) return;
+    setState(() {
+      nutritionGoals = goals;
+      currentNutrition = nutrition;
+      todayMeals = meals;
+      _isLoading = false;
+    });
   }
 
   Future<void> _openMealSelection(String mealType) async {
