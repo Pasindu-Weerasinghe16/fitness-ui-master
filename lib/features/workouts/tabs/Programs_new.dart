@@ -7,6 +7,11 @@ import 'package:fitness_flutter/features/workouts/pages/workout_calendar_page.da
 import 'package:fitness_flutter/shared/widgets/circular_progress_card.dart';
 import 'package:fitness_flutter/shared/widgets/stat_card.dart';
 import 'package:fitness_flutter/services/workout_tracking_service.dart';
+import 'package:fitness_flutter/features/articles/pages/nutrition_articles_page.dart';
+import 'package:fitness_flutter/features/articles/pages/training_articles_page.dart';
+import 'package:fitness_flutter/features/articles/pages/recovery_articles_page.dart';
+import 'package:fitness_flutter/features/articles/pages/motivation_articles_page.dart';
+import 'package:fitness_flutter/features/articles/pages/wellness_articles_page.dart';
 
 class Programs extends StatefulWidget {
   const Programs({super.key});
@@ -577,6 +582,14 @@ class _ProgramsState extends State<Programs> {
                       category: 'Nutrition',
                       title: 'Pre-Workout Nutrition Guide',
                       readTime: '5 min read',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const NutritionArticlesPage(),
+                          ),
+                        );
+                      },
                     ),
                     _articleCard(
                       theme,
@@ -584,6 +597,14 @@ class _ProgramsState extends State<Programs> {
                       category: 'Training',
                       title: 'How to Build Muscle Effectively',
                       readTime: '8 min read',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const TrainingArticlesPage(),
+                          ),
+                        );
+                      },
                     ),
                     _articleCard(
                       theme,
@@ -591,6 +612,14 @@ class _ProgramsState extends State<Programs> {
                       category: 'Recovery',
                       title: 'The Importance of Rest Days',
                       readTime: '6 min read',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const RecoveryArticlesPage(),
+                          ),
+                        );
+                      },
                     ),
                     _articleCard(
                       theme,
@@ -598,6 +627,14 @@ class _ProgramsState extends State<Programs> {
                       category: 'Motivation',
                       title: 'Stay Consistent: 7 Tips',
                       readTime: '4 min read',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const MotivationArticlesPage(),
+                          ),
+                        );
+                      },
                     ),
                     _articleCard(
                       theme,
@@ -605,6 +642,14 @@ class _ProgramsState extends State<Programs> {
                       category: 'Wellness',
                       title: 'Sleep & Fitness Performance',
                       readTime: '7 min read',
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const WellnessArticlesPage(),
+                          ),
+                        );
+                      },
                     ),
                   ],
                 ),
@@ -748,11 +793,10 @@ class _ProgramsState extends State<Programs> {
     required String category,
     required String title,
     required String readTime,
+    VoidCallback? onTap,
   }) {
     return GestureDetector(
-      onTap: () {
-        // Navigate to article detail
-      },
+      onTap: onTap,
       child: Container(
         width: 280,
         margin: const EdgeInsets.only(right: 16),
