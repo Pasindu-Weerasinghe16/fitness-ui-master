@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:fitness_flutter/features/profile/pages/personal_details_page.dart';
+import 'package:fitness_flutter/features/account/pages/help_center_page.dart';
+import 'package:fitness_flutter/features/account/pages/about_page.dart';
 import 'package:fitness_flutter/shared/widgets/Header.dart';
 import 'package:fitness_flutter/app/theme/theme_provider.dart';
 import 'package:fitness_flutter/features/auth/pages/sign_in_page.dart';
@@ -27,6 +29,264 @@ class AccountPage extends StatelessWidget {
     final pName = profile?.displayName?.trim();
     if (pName != null && pName.isNotEmpty) return pName;
     return _userDisplayName(user);
+  }
+
+  Future<void> _selectSubscriptionPlan(BuildContext context, User? user) async {
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in to select a subscription plan')),
+      );
+      return;
+    }
+
+    final plans = ['Gold', 'Silver', 'Bronze'];
+    final planDescriptions = {
+      'Gold': 'Premium features + priority support',
+      'Silver': 'Standard features + support',
+      'Bronze': 'Basic features',
+    };
+
+    await showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Subscription Plan',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...plans.map((plan) {
+                  final style = _planStyle(plan);
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: InkWell(
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        try {
+                          await UserProfileService().save(
+                            uid: user.uid,
+                            email: user.email,
+                            subscriptionPlan: plan,
+                          );
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Subscription plan changed to $plan')),
+                          );
+                        } catch (_) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Failed to update plan. Please try again.')),
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: style.color.withOpacity(0.3),
+                            width: 2,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: style.color.withOpacity(0.15),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Icon(
+                                style.icon,
+                                color: style.color,
+                                size: 28,
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    plan,
+                                    style: theme.textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.w700,
+                                      color: style.color,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    planDescriptions[plan]!,
+                                    style: theme.textTheme.bodySmall,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: theme.textTheme.bodySmall?.color,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _selectLanguage(BuildContext context, User? user) async {
+    if (user == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please sign in to select a language')),
+      );
+      return;
+    }
+
+    final languages = {
+      'English': {'flag': '🇬🇧', 'code': 'en'},
+      'Chinese': {'flag': '🇨🇳', 'code': 'zh'},
+    };
+
+    await showModalBottomSheet(
+      context: context,
+      showDragHandle: true,
+      builder: (sheetContext) {
+        final theme = Theme.of(sheetContext);
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Select Language',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
+                const SizedBox(height: 16),
+                ...languages.entries.map((entry) {
+                  final langName = entry.key;
+                  final langData = entry.value;
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: 12),
+                    child: InkWell(
+                      onTap: () async {
+                        Navigator.pop(sheetContext);
+                        try {
+                          await UserProfileService().save(
+                            uid: user.uid,
+                            email: user.email,
+                            language: langName,
+                          );
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text('Language changed to $langName')),
+                          );
+                        } catch (_) {
+                          if (!context.mounted) return;
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Failed to update language. Please try again.')),
+                          );
+                        }
+                      },
+                      borderRadius: BorderRadius.circular(16),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: theme.cardColor,
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: theme.colorScheme.primary.withOpacity(0.2),
+                            width: 1.5,
+                          ),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.04),
+                              blurRadius: 10,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: theme.colorScheme.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                langData['flag']!,
+                                style: const TextStyle(fontSize: 28),
+                              ),
+                            ),
+                            const SizedBox(width: 16),
+                            Expanded(
+                              child: Text(
+                                langName,
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              size: 16,
+                              color: theme.textTheme.bodySmall?.color,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  );
+                }).toList(),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  ({Color color, IconData icon}) _planStyle(String plan) {
+    switch (plan.toLowerCase()) {
+      case 'gold':
+        return (color: const Color(0xFFFFD700), icon: Icons.workspace_premium);
+      case 'silver':
+        return (color: const Color(0xFFC0C0C0), icon: Icons.star);
+      case 'bronze':
+        return (color: const Color(0xFFCD7F32), icon: Icons.emoji_events);
+      default:
+        return (color: const Color(0xFF007AFF), icon: Icons.card_membership);
+    }
   }
 
   @override
@@ -115,6 +375,16 @@ class AccountPage extends StatelessWidget {
                                 final items = <String>[];
                                 if (height != null) items.add('Height: ${height.toString()} cm');
                                 if (weight != null) items.add('Weight: ${weight.toString()} kg');
+
+                                if (height != null && weight != null) {
+                                  final hMeters = height.toDouble() / 100.0;
+                                  if (hMeters > 0) {
+                                    final bmi = weight.toDouble() / (hMeters * hMeters);
+                                    if (bmi.isFinite) {
+                                      items.add('BMI: ${bmi.toStringAsFixed(1)}');
+                                    }
+                                  }
+                                }
 
                                 if (items.isEmpty) {
                                   return Text(
@@ -250,26 +520,50 @@ class AccountPage extends StatelessWidget {
                 title: 'Privacy & Security',
                 subtitle: 'Data & permissions',
               ),
-              _buildSettingsTile(
-                context,
-                icon: Icons.payment_outlined,
-                title: 'Subscription',
-                subtitle: 'Premium plan',
-                trailing: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: const Color(0xFFFFD700).withOpacity(0.2),
-                    borderRadius: BorderRadius.circular(8),
-                  ),
-                  child: const Text(
-                    'Gold',
-                    style: TextStyle(
-                      color: Color(0xFFFFD700),
-                      fontWeight: FontWeight.w600,
-                      fontSize: 12,
+              StreamBuilder<UserProfile?>(
+                stream: user == null ? const Stream.empty() : profileService.watch(user.uid),
+                builder: (context, snapshot) {
+                  final profile = snapshot.data;
+                  final plan = profile?.subscriptionPlan ?? 'Gold';
+                  final style = _planStyle(plan);
+                  
+                  return _buildSettingsTile(
+                    context,
+                    icon: Icons.payment_outlined,
+                    title: 'Subscription',
+                    subtitle: 'Tap to change plan',
+                    onTap: () => _selectSubscriptionPlan(context, user),
+                    trailing: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                      decoration: BoxDecoration(
+                        color: style.color.withOpacity(0.2),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: style.color.withOpacity(0.4),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            style.icon,
+                            color: style.color,
+                            size: 14,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            plan,
+                            style: TextStyle(
+                              color: style.color,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ),
+                  );
+                },
               ),
               
               const SizedBox(height: 24),
@@ -289,11 +583,20 @@ class AccountPage extends StatelessWidget {
                 title: 'Sync Devices',
                 subtitle: 'Connect wearables',
               ),
-              _buildSettingsTile(
-                context,
-                icon: Icons.language,
-                title: 'Language',
-                subtitle: 'English',
+              StreamBuilder<UserProfile?>(
+                stream: user == null ? const Stream.empty() : profileService.watch(user.uid),
+                builder: (context, snapshot) {
+                  final profile = snapshot.data;
+                  final language = profile?.language ?? 'English';
+                  
+                  return _buildSettingsTile(
+                    context,
+                    icon: Icons.language,
+                    title: 'Language',
+                    subtitle: language,
+                    onTap: () => _selectLanguage(context, user),
+                  );
+                },
               ),
               _buildSettingsTile(
                 context,
@@ -328,6 +631,14 @@ class AccountPage extends StatelessWidget {
                 icon: Icons.help_outline,
                 title: 'Help Center',
                 subtitle: 'FAQs & tutorials',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const HelpCenterPage(),
+                    ),
+                  );
+                },
               ),
               _buildSettingsTile(
                 context,
@@ -340,6 +651,14 @@ class AccountPage extends StatelessWidget {
                 icon: Icons.info_outline,
                 title: 'About',
                 subtitle: 'Version 1.0.0',
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const AboutPage(),
+                    ),
+                  );
+                },
               ),
               
               const SizedBox(height: 24),

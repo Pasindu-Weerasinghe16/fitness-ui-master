@@ -12,6 +12,59 @@ class PersonalDetailsPage extends StatelessWidget {
     return asDouble.toStringAsFixed(1);
   }
 
+  double? _calculateBmi({required num? heightCm, required num? weightKg}) {
+    if (heightCm == null || weightKg == null) return null;
+    final hMeters = heightCm.toDouble() / 100.0;
+    if (hMeters <= 0) return null;
+    final bmi = weightKg.toDouble() / (hMeters * hMeters);
+    if (!bmi.isFinite) return null;
+    return bmi;
+  }
+
+  ({String label, Color color}) _bmiCategory(double bmi) {
+    if (bmi < 18.5) {
+      return (label: 'Underweight', color: const Color(0xFF007AFF));
+    }
+    if (bmi < 25.0) {
+      return (label: 'Normal', color: const Color(0xFF34C759));
+    }
+    if (bmi < 30.0) {
+      return (label: 'Overweight', color: const Color(0xFFFF9500));
+    }
+    return (label: 'Obese', color: const Color(0xFFFF3B30));
+  }
+
+  ({String label, Color color})? _measurementCategory(String type, num? value) {
+    if (value == null) return null;
+    final v = value.toDouble();
+
+    // Typical ranges for adults (cm), these are general guidelines
+    switch (type) {
+      case 'chest':
+        // Men: 90-110 normal, Women: 80-100 normal
+        if (v < 80) return (label: 'Low', color: const Color(0xFF007AFF));
+        if (v <= 110) return (label: 'Normal', color: const Color(0xFF34C759));
+        return (label: 'High', color: const Color(0xFFFF9500));
+      case 'waist':
+        // Men: <94 normal, Women: <80 normal (health guidelines)
+        if (v < 70) return (label: 'Low', color: const Color(0xFF007AFF));
+        if (v <= 94) return (label: 'Normal', color: const Color(0xFF34C759));
+        return (label: 'High', color: const Color(0xFFFF9500));
+      case 'arms':
+        // Bicep circumference: 25-40 cm typical
+        if (v < 25) return (label: 'Low', color: const Color(0xFF007AFF));
+        if (v <= 40) return (label: 'Normal', color: const Color(0xFF34C759));
+        return (label: 'High', color: const Color(0xFFFF9500));
+      case 'thighs':
+        // Thigh circumference: 45-65 cm typical
+        if (v < 45) return (label: 'Low', color: const Color(0xFF007AFF));
+        if (v <= 65) return (label: 'Normal', color: const Color(0xFF34C759));
+        return (label: 'High', color: const Color(0xFFFF9500));
+      default:
+        return null;
+    }
+  }
+
   Future<void> _editDisplayName(BuildContext context, User user, UserProfile? profile) async {
     final controller = TextEditingController(
       text: (profile?.displayName?.trim().isNotEmpty ?? false)
@@ -146,6 +199,115 @@ class PersonalDetailsPage extends StatelessWidget {
     }
   }
 
+  Future<void> _editBodyMeasurements(BuildContext context, User user, UserProfile? profile) async {
+    final chestController = TextEditingController(
+      text: profile?.chestCm?.toString(),
+    );
+    final waistController = TextEditingController(
+      text: profile?.waistCm?.toString(),
+    );
+    final armsController = TextEditingController(
+      text: profile?.armsCm?.toString(),
+    );
+    final thighsController = TextEditingController(
+      text: profile?.thighsCm?.toString(),
+    );
+
+    final result = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) {
+        return AlertDialog(
+          title: const Text('Update Body Measurements'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: chestController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Chest (cm)',
+                    hintText: 'e.g. 98',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: waistController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Waist (cm)',
+                    hintText: 'e.g. 82',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: armsController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Arms (cm)',
+                    hintText: 'e.g. 35',
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: thighsController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: const InputDecoration(
+                    labelText: 'Thighs (cm)',
+                    hintText: 'e.g. 58',
+                  ),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, false),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext, true),
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
+    );
+
+    if (result != true) return;
+
+    num? parseNum(String text) {
+      final trimmed = text.trim();
+      if (trimmed.isEmpty) return null;
+      return num.tryParse(trimmed);
+    }
+
+    final chest = parseNum(chestController.text);
+    final waist = parseNum(waistController.text);
+    final arms = parseNum(armsController.text);
+    final thighs = parseNum(thighsController.text);
+
+    try {
+      await UserProfileService().save(
+        uid: user.uid,
+        email: user.email,
+        chestCm: chest,
+        waistCm: waist,
+        armsCm: arms,
+        thighsCm: thighs,
+      );
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Body measurements saved successfully')),
+      );
+    } catch (_) {
+      if (!context.mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Save failed. Please try again.')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -169,6 +331,13 @@ class PersonalDetailsPage extends StatelessWidget {
                       : ((user.displayName != null && user.displayName!.trim().isNotEmpty)
                           ? user.displayName!.trim()
                           : (user.email ?? 'User'));
+
+                  final bmi = _calculateBmi(
+                    heightCm: profile?.heightCm,
+                    weightKg: profile?.weightKg,
+                  );
+                  final bmiInfo = bmi == null ? null : _bmiCategory(bmi);
+
                   return SingleChildScrollView(
                     padding: const EdgeInsets.all(16),
                     child: Column(
@@ -277,6 +446,16 @@ class PersonalDetailsPage extends StatelessWidget {
                 value: '${_formatNum(profile?.weightKg)} kg',
               ),
               const SizedBox(height: 10),
+              // BMI Section
+              _sectionTitle(theme, 'BMI'),
+              const SizedBox(height: 12),
+              _bmiCard(
+                theme,
+                bmi: bmi,
+                category: bmiInfo?.label,
+                categoryColor: bmiInfo?.color,
+              ),
+              const SizedBox(height: 10),
               _infoCard(
                 theme,
                 icon: Icons.flag_outlined,
@@ -373,37 +552,59 @@ class PersonalDetailsPage extends StatelessWidget {
               // Body Measurements Section
               _sectionTitle(theme, 'Body Measurements'),
               const SizedBox(height: 12),
-              Container(
-                padding: const EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: theme.cardColor,
-                  borderRadius: BorderRadius.circular(16),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withOpacity(0.04),
-                      blurRadius: 10,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-                ),
-                child: Column(
-                  children: [
-                    _measurementRow(theme, 'Chest', '98 cm'),
-                    const Divider(height: 24),
-                    _measurementRow(theme, 'Waist', '82 cm'),
-                    const Divider(height: 24),
-                    _measurementRow(theme, 'Arms', '35 cm'),
-                    const Divider(height: 24),
-                    _measurementRow(theme, 'Thighs', '58 cm'),
-                    const Divider(height: 24),
-                    _measurementRow(theme, 'Body Fat %', '18%'),
-                  ],
+              InkWell(
+                onTap: () => _editBodyMeasurements(context, user, profile),
+                borderRadius: BorderRadius.circular(16),
+                child: Container(
+                  padding: const EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(16),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.04),
+                        blurRadius: 10,
+                        offset: const Offset(0, 2),
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      _measurementRow(
+                        theme,
+                        'Chest',
+                        profile?.chestCm,
+                        _measurementCategory('chest', profile?.chestCm),
+                      ),
+                      const Divider(height: 24),
+                      _measurementRow(
+                        theme,
+                        'Waist',
+                        profile?.waistCm,
+                        _measurementCategory('waist', profile?.waistCm),
+                      ),
+                      const Divider(height: 24),
+                      _measurementRow(
+                        theme,
+                        'Arms',
+                        profile?.armsCm,
+                        _measurementCategory('arms', profile?.armsCm),
+                      ),
+                      const Divider(height: 24),
+                      _measurementRow(
+                        theme,
+                        'Thighs',
+                        profile?.thighsCm,
+                        _measurementCategory('thighs', profile?.thighsCm),
+                      ),
+                    ],
+                  ),
                 ),
               ),
 
               const SizedBox(height: 24),
 
-              // Edit Button
+              // Edit Buttons
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton.icon(
@@ -417,6 +618,24 @@ class PersonalDetailsPage extends StatelessWidget {
                   },
                   icon: const Icon(Icons.edit),
                   label: const Text('Edit Height & Weight'),
+                ),
+              ),
+
+              const SizedBox(height: 12),
+
+              SizedBox(
+                width: double.infinity,
+                child: OutlinedButton.icon(
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: theme.colorScheme.primary,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    side: BorderSide(color: theme.colorScheme.primary),
+                  ),
+                  onPressed: () {
+                    _editBodyMeasurements(context, user, profile);
+                  },
+                  icon: const Icon(Icons.straighten),
+                  label: const Text('Edit Body Measurements'),
                 ),
               ),
 
@@ -566,7 +785,14 @@ class PersonalDetailsPage extends StatelessWidget {
     );
   }
 
-  Widget _measurementRow(ThemeData theme, String label, String value) {
+  Widget _measurementRow(
+    ThemeData theme,
+    String label,
+    num? value,
+    ({String label, Color color})? category,
+  ) {
+    final displayValue = value != null ? '${_formatNum(value)} cm' : 'Not set';
+    
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -574,13 +800,118 @@ class PersonalDetailsPage extends StatelessWidget {
           label,
           style: theme.textTheme.bodyMedium,
         ),
-        Text(
-          value,
-          style: theme.textTheme.titleMedium?.copyWith(
-            fontWeight: FontWeight.w600,
-          ),
+        Row(
+          children: [
+            Text(
+              displayValue,
+              style: theme.textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+            if (category != null) ...[
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                decoration: BoxDecoration(
+                  color: category.color.withOpacity(0.12),
+                  borderRadius: BorderRadius.circular(8),
+                  border: Border.all(color: category.color.withOpacity(0.35)),
+                ),
+                child: Text(
+                  category.label,
+                  style: theme.textTheme.bodySmall?.copyWith(
+                    color: category.color,
+                    fontWeight: FontWeight.w700,
+                    fontSize: 11,
+                  ),
+                ),
+              ),
+            ],
+          ],
         ),
       ],
+    );
+  }
+
+  Widget _bmiCard(
+    ThemeData theme, {
+    required double? bmi,
+    required String? category,
+    required Color? categoryColor,
+  }) {
+    final showValue = bmi != null && category != null && categoryColor != null;
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.04),
+            blurRadius: 10,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: const Color(0xFFF2F2F7),
+              borderRadius: BorderRadius.circular(10),
+            ),
+            child: const Icon(Icons.calculate_outlined, color: Color(0xFF007AFF), size: 24),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Body Mass Index', style: theme.textTheme.bodyMedium),
+                const SizedBox(height: 2),
+                Text(
+                  showValue ? 'Based on your height & weight' : 'Add height & weight to calculate BMI',
+                  style: theme.textTheme.bodySmall,
+                ),
+              ],
+            ),
+          ),
+          if (showValue) ...[
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  bmi.toStringAsFixed(1),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 6),
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: categoryColor.withOpacity(0.12),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(color: categoryColor.withOpacity(0.35)),
+                  ),
+                  child: Text(
+                    category,
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: categoryColor,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            Text(
+              '—',
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w700),
+            ),
+          ],
+        ],
+      ),
     );
   }
 }
